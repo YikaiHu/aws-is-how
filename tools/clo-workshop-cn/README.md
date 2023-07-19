@@ -4,3 +4,5 @@ Click and download the CloudFormation yaml template, and upload to deploy the wo
 
 - [CloudFormation template for cn-north-1](https://github.com/YikaiHu/aws-is-how/raw/main/tools/clo-workshop-cn/CLWorkshopEC2AndEKS-cn-north-1.template)
 - [CloudFormation template for cn-northwest-1](https://github.com/YikaiHu/aws-is-how/raw/main/tools/clo-workshop-cn/CLWorkshopEC2AndEKS-cn-northwest-1.template)
+
+<a id="raw-url" href="https://raw.githubusercontent.com/YikaiHu/aws-is-how/main/tools/clo-workshop-cn/CLWorkshopEC2AndEKS-cn-northwest-1.template">Download FILE</a>
