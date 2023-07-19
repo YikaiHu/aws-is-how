@@ -1,0 +1,5942 @@
+{
+ "Description": "Centralized Logging with OpenSearch Workshop Stack. Template version v2.0.2",
+ "Resources": {
+  "clWorkshopWeb089A8C58": {
+   "Type": "AWS::S3::Bucket",
+   "Properties": {
+    "OwnershipControls": {
+     "Rules": [
+      {
+       "ObjectOwnership": "ObjectWriter"
+      }
+     ]
+    },
+    "Tags": [
+     {
+      "Key": "aws-cdk:auto-delete-objects",
+      "Value": "true"
+     },
+     {
+      "Key": "aws-cdk:cr-owned:assets:5f855b2e",
+      "Value": "true"
+     },
+     {
+      "Key": "aws-cdk:cr-owned:f5acb7b8",
+      "Value": "true"
+     }
+    ]
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/clWorkshopWeb/Resource"
+   }
+  },
+  "clWorkshopWebPolicy3BB0BBFB": {
+   "Type": "AWS::S3::BucketPolicy",
+   "Properties": {
+    "Bucket": {
+     "Ref": "clWorkshopWeb089A8C58"
+    },
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "s3:GetBucket*",
+        "s3:List*",
+        "s3:DeleteObject*"
+       ],
+       "Effect": "Allow",
+       "Principal": {
+        "AWS": {
+         "Fn::GetAtt": [
+          "CustomS3AutoDeleteObjectsCustomResourceProviderRole3B1BD092",
+          "Arn"
+         ]
+        }
+       },
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "clWorkshopWeb089A8C58",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "clWorkshopWeb089A8C58",
+             "Arn"
+            ]
+           },
+           "/*"
+          ]
+         ]
+        }
+       ]
+      },
+      {
+       "Action": "s3:GetObject",
+       "Effect": "Allow",
+       "Principal": {
+        "CanonicalUser": {
+         "Fn::GetAtt": [
+          "OAIE1EFC67F",
+          "S3CanonicalUserId"
+         ]
+        }
+       },
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          {
+           "Fn::GetAtt": [
+            "clWorkshopWeb089A8C58",
+            "Arn"
+           ]
+          },
+          "/*"
+         ]
+        ]
+       }
+      },
+      {
+       "Action": [
+        "s3:GetObject*",
+        "s3:GetBucket*",
+        "s3:List*"
+       ],
+       "Effect": "Allow",
+       "Principal": {
+        "CanonicalUser": {
+         "Fn::GetAtt": [
+          "OAIE1EFC67F",
+          "S3CanonicalUserId"
+         ]
+        }
+       },
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "clWorkshopWeb089A8C58",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "clWorkshopWeb089A8C58",
+             "Arn"
+            ]
+           },
+           "/*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/clWorkshopWeb/Policy/Resource"
+   }
+  },
+  "clWorkshopWebAutoDeleteObjectsCustomResource0DC1C4F3": {
+   "Type": "Custom::S3AutoDeleteObjects",
+   "Properties": {
+    "ServiceToken": {
+     "Fn::GetAtt": [
+      "CustomS3AutoDeleteObjectsCustomResourceProviderHandler9D90184F",
+      "Arn"
+     ]
+    },
+    "BucketName": {
+     "Ref": "clWorkshopWeb089A8C58"
+    }
+   },
+   "DependsOn": [
+    "clWorkshopWebPolicy3BB0BBFB"
+   ],
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/clWorkshopWeb/AutoDeleteObjectsCustomResource/Default"
+   }
+  },
+  "CustomS3AutoDeleteObjectsCustomResourceProviderRole3B1BD092": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Version": "2012-10-17",
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ]
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Sub": "arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/Custom::S3AutoDeleteObjectsCustomResourceProvider/Role"
+   }
+  },
+  "CustomS3AutoDeleteObjectsCustomResourceProviderHandler9D90184F": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": {
+      "Fn::Sub": "aws-gcr-solutions-${AWS::Region}"
+     },
+     "S3Key": "log-hub-workshop/v2.0.2/2332a8953f2d92ebffdc01cf20d5a2fb5bf2ef29764cda4186f01c55edee8c73.zip"
+    },
+    "Timeout": 900,
+    "MemorySize": 128,
+    "Handler": "__entrypoint__.handler",
+    "Role": {
+     "Fn::GetAtt": [
+      "CustomS3AutoDeleteObjectsCustomResourceProviderRole3B1BD092",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs14.x",
+    "Description": {
+     "Fn::Join": [
+      "",
+      [
+       "Lambda function for auto-deleting objects in ",
+       {
+        "Ref": "clWorkshopWeb089A8C58"
+       },
+       " S3 bucket."
+      ]
+     ]
+    }
+   },
+   "DependsOn": [
+    "CustomS3AutoDeleteObjectsCustomResourceProviderRole3B1BD092"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/Custom::S3AutoDeleteObjectsCustomResourceProvider/Handler",
+    "aws:asset:path": "asset.2332a8953f2d92ebffdc01cf20d5a2fb5bf2ef29764cda4186f01c55edee8c73",
+    "aws:asset:property": "Code"
+   }
+  },
+  "DeployWebAssetsAwsCliLayer250A2C69": {
+   "Type": "AWS::Lambda::LayerVersion",
+   "Properties": {
+    "Content": {
+     "S3Bucket": {
+      "Fn::Sub": "aws-gcr-solutions-${AWS::Region}"
+     },
+     "S3Key": "log-hub-workshop/v2.0.2/f8e422c63159c82c409e8254300a3134e020892c27382902d4c8c0a5b35d0a06"
+    },
+    "Description": "/opt/awscli/aws"
+   },
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/DeployWebAssets/AwsCliLayer/Resource",
+    "aws:asset:path": "asset.f8e422c63159c82c409e8254300a3134e020892c27382902d4c8c0a5b35d0a06.zip",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Content"
+   }
+  },
+  "DeployWebAssetsCustomResourceAF550962": {
+   "Type": "Custom::CDKBucketDeployment",
+   "Properties": {
+    "ServiceToken": {
+     "Fn::GetAtt": [
+      "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C81C01536",
+      "Arn"
+     ]
+    },
+    "SourceBucketNames": [
+     {
+      "Fn::Sub": "aws-gcr-solutions-${AWS::Region}"
+     }
+    ],
+    "SourceObjectKeys": [
+     "log-hub-workshop/v2.0.2/e1056b2f0edffb16e67b6241cd8e25699a9e709de935e91279134aff4c61ed2e.zip"
+    ],
+    "DestinationBucketName": {
+     "Ref": "clWorkshopWeb089A8C58"
+    },
+    "DestinationBucketKeyPrefix": "assets",
+    "Prune": false
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/DeployWebAssets/CustomResource/Default"
+   }
+  },
+  "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRole89A01265": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/Custom::CDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C/ServiceRole/Resource"
+   }
+  },
+  "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRoleDefaultPolicy88902FDF": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "s3:GetObject*",
+        "s3:GetBucket*",
+        "s3:List*"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":s3:::",
+           {
+            "Fn::Sub": "aws-gcr-solutions-${AWS::Region}"
+           }
+          ]
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":s3:::",
+           {
+            "Fn::Sub": "aws-gcr-solutions-${AWS::Region}"
+           },
+           "/*"
+          ]
+         ]
+        }
+       ]
+      },
+      {
+       "Action": [
+        "s3:GetObject*",
+        "s3:GetBucket*",
+        "s3:List*",
+        "s3:DeleteObject*",
+        "s3:PutObject",
+        "s3:PutObjectLegalHold",
+        "s3:PutObjectRetention",
+        "s3:PutObjectTagging",
+        "s3:PutObjectVersionTagging",
+        "s3:Abort*"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "clWorkshopWeb089A8C58",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "clWorkshopWeb089A8C58",
+             "Arn"
+            ]
+           },
+           "/*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRoleDefaultPolicy88902FDF",
+    "Roles": [
+     {
+      "Ref": "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRole89A01265"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/Custom::CDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C81C01536": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": {
+      "Fn::Sub": "aws-gcr-solutions-${AWS::Region}"
+     },
+     "S3Key": "log-hub-workshop/v2.0.2/2bc265c5e0569aeb24a6349c15bd54e76e845892376515e036627ab0cc70bb64.zip"
+    },
+    "Role": {
+     "Fn::GetAtt": [
+      "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRole89A01265",
+      "Arn"
+     ]
+    },
+    "Handler": "index.handler",
+    "Layers": [
+     {
+      "Ref": "DeployWebAssetsAwsCliLayer250A2C69"
+     }
+    ],
+    "Runtime": "python3.9",
+    "Timeout": 900
+   },
+   "DependsOn": [
+    "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRoleDefaultPolicy88902FDF",
+    "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRole89A01265"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/Custom::CDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C/Resource",
+    "aws:asset:path": "asset.2bc265c5e0569aeb24a6349c15bd54e76e845892376515e036627ab0cc70bb64",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
+   }
+  },
+  "OAIE1EFC67F": {
+   "Type": "AWS::CloudFront::CloudFrontOriginAccessIdentity",
+   "Properties": {
+    "CloudFrontOriginAccessIdentityConfig": {
+     "Comment": "Allows CloudFront to reach the bucket"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/OAI/Resource"
+   }
+  },
+  "CDNWorkshopAssetsD305196A": {
+   "Type": "AWS::CloudFront::Distribution",
+   "Properties": {
+    "DistributionConfig": {
+     "Comment": "CentralizedLogging-Workshop Assets",
+               "DefaultCacheBehavior": {
+            "Compress": true,
+            "ForwardedValues": {
+              "Cookies": {
+                "Forward": "none"
+              },
+              "QueryString": false
+            },
+            "TargetOriginId": "CLWorkshopEC2AndEKSCDNWorkshopAssetsOrigin1843AF41E",
+            "ViewerProtocolPolicy": "allow-all"
+          },
+     "Enabled": true,
+     "HttpVersion": "http2",
+     "IPV6Enabled": false,
+     "Logging": {
+      "Bucket": {
+       "Fn::GetAtt": [
+        "clWorkshopWeb089A8C58",
+        "RegionalDomainName"
+       ]
+      },
+      "Prefix": "distribution-access-logs/"
+     },
+     "Origins": [
+      {
+       "DomainName": {
+        "Fn::GetAtt": [
+         "clWorkshopWeb089A8C58",
+         "RegionalDomainName"
+        ]
+       },
+       "Id": "CLWorkshopEC2AndEKSCDNWorkshopAssetsOrigin1843AF41E",
+       "OriginPath": "/assets",
+       "S3OriginConfig": {
+        "OriginAccessIdentity": {
+         "Fn::Join": [
+          "",
+          [
+           "origin-access-identity/cloudfront/",
+           {
+            "Ref": "OAIE1EFC67F"
+           }
+          ]
+         ]
+        }
+       }
+      }
+     ]
+    }
+   },
+   "DependsOn": [
+    "clWorkshopWebAutoDeleteObjectsCustomResource0DC1C4F3",
+    "clWorkshopWebPolicy3BB0BBFB",
+    "clWorkshopWeb089A8C58"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/CDNWorkshopAssets/Resource"
+   }
+  },
+  "DeployWorkshopWebAwsCliLayer34186108": {
+   "Type": "AWS::Lambda::LayerVersion",
+   "Properties": {
+    "Content": {
+     "S3Bucket": {
+      "Fn::Sub": "aws-gcr-solutions-${AWS::Region}"
+     },
+     "S3Key": "log-hub-workshop/v2.0.2/f8e422c63159c82c409e8254300a3134e020892c27382902d4c8c0a5b35d0a06"
+    },
+    "Description": "/opt/awscli/aws"
+   },
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/DeployWorkshopWeb/AwsCliLayer/Resource",
+    "aws:asset:path": "asset.f8e422c63159c82c409e8254300a3134e020892c27382902d4c8c0a5b35d0a06.zip",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Content"
+   }
+  },
+  "DeployWorkshopWebCustomResource87DDAEB7": {
+   "Type": "Custom::CDKBucketDeployment",
+   "Properties": {
+    "ServiceToken": {
+     "Fn::GetAtt": [
+      "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C81C01536",
+      "Arn"
+     ]
+    },
+    "SourceBucketNames": [
+     {
+      "Fn::Sub": "aws-gcr-solutions-${AWS::Region}"
+     }
+    ],
+    "SourceObjectKeys": [
+     "log-hub-workshop/v2.0.2/448e3ee9795f96758f75cd2c3efc99b06dc6a59da32eed25b217aabe033d8c64.zip"
+    ],
+    "DestinationBucketName": {
+     "Ref": "clWorkshopWeb089A8C58"
+    },
+    "Prune": false
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/DeployWorkshopWeb/CustomResource/Default"
+   }
+  },
+  "workshopVpcB999C4C5": {
+   "Type": "AWS::EC2::VPC",
+   "Properties": {
+    "CidrBlock": "10.0.0.0/16",
+    "EnableDnsHostnames": true,
+    "EnableDnsSupport": true,
+    "InstanceTenancy": "default",
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "CLWorkshopEC2AndEKS/workshopVpc"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/workshopVpc/Resource"
+   }
+  },
+  "workshopVpcpublicSubnet1SubnetFAC60711": {
+   "Type": "AWS::EC2::Subnet",
+   "Properties": {
+    "VpcId": {
+     "Ref": "workshopVpcB999C4C5"
+    },
+    "AvailabilityZone": {
+     "Fn::Select": [
+      0,
+      {
+       "Fn::GetAZs": ""
+      }
+     ]
+    },
+    "CidrBlock": "10.0.0.0/24",
+    "MapPublicIpOnLaunch": true,
+    "Tags": [
+     {
+      "Key": "aws-cdk:subnet-name",
+      "Value": "public"
+     },
+     {
+      "Key": "aws-cdk:subnet-type",
+      "Value": "Public"
+     },
+     {
+      "Key": "kubernetes.io/role/elb",
+      "Value": "1"
+     },
+     {
+      "Key": "Name",
+      "Value": "CLWorkshopEC2AndEKS/workshopVpc/publicSubnet1"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/workshopVpc/publicSubnet1/Subnet"
+   }
+  },
+  "workshopVpcpublicSubnet1RouteTable1C40FAF8": {
+   "Type": "AWS::EC2::RouteTable",
+   "Properties": {
+    "VpcId": {
+     "Ref": "workshopVpcB999C4C5"
+    },
+    "Tags": [
+     {
+      "Key": "kubernetes.io/role/elb",
+      "Value": "1"
+     },
+     {
+      "Key": "Name",
+      "Value": "CLWorkshopEC2AndEKS/workshopVpc/publicSubnet1"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/workshopVpc/publicSubnet1/RouteTable"
+   }
+  },
+  "workshopVpcpublicSubnet1RouteTableAssociation3E94745D": {
+   "Type": "AWS::EC2::SubnetRouteTableAssociation",
+   "Properties": {
+    "RouteTableId": {
+     "Ref": "workshopVpcpublicSubnet1RouteTable1C40FAF8"
+    },
+    "SubnetId": {
+     "Ref": "workshopVpcpublicSubnet1SubnetFAC60711"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/workshopVpc/publicSubnet1/RouteTableAssociation"
+   }
+  },
+  "workshopVpcpublicSubnet1DefaultRoute594B4E87": {
+   "Type": "AWS::EC2::Route",
+   "Properties": {
+    "RouteTableId": {
+     "Ref": "workshopVpcpublicSubnet1RouteTable1C40FAF8"
+    },
+    "DestinationCidrBlock": "0.0.0.0/0",
+    "GatewayId": {
+     "Ref": "workshopVpcIGW3C43A0CD"
+    }
+   },
+   "DependsOn": [
+    "workshopVpcVPCGWE9443FB8"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/workshopVpc/publicSubnet1/DefaultRoute"
+   }
+  },
+  "workshopVpcpublicSubnet1EIPC03FB332": {
+   "Type": "AWS::EC2::EIP",
+   "Properties": {
+    "Domain": "vpc",
+    "Tags": [
+     {
+      "Key": "kubernetes.io/role/elb",
+      "Value": "1"
+     },
+     {
+      "Key": "Name",
+      "Value": "CLWorkshopEC2AndEKS/workshopVpc/publicSubnet1"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/workshopVpc/publicSubnet1/EIP"
+   }
+  },
+  "workshopVpcpublicSubnet1NATGateway1270202C": {
+   "Type": "AWS::EC2::NatGateway",
+   "Properties": {
+    "SubnetId": {
+     "Ref": "workshopVpcpublicSubnet1SubnetFAC60711"
+    },
+    "AllocationId": {
+     "Fn::GetAtt": [
+      "workshopVpcpublicSubnet1EIPC03FB332",
+      "AllocationId"
+     ]
+    },
+    "Tags": [
+     {
+      "Key": "kubernetes.io/role/elb",
+      "Value": "1"
+     },
+     {
+      "Key": "Name",
+      "Value": "CLWorkshopEC2AndEKS/workshopVpc/publicSubnet1"
+     }
+    ]
+   },
+   "DependsOn": [
+    "workshopVpcpublicSubnet1DefaultRoute594B4E87",
+    "workshopVpcpublicSubnet1RouteTableAssociation3E94745D"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/workshopVpc/publicSubnet1/NATGateway"
+   }
+  },
+  "workshopVpcpublicSubnet2Subnet2D84D2A0": {
+   "Type": "AWS::EC2::Subnet",
+   "Properties": {
+    "VpcId": {
+     "Ref": "workshopVpcB999C4C5"
+    },
+    "AvailabilityZone": {
+     "Fn::Select": [
+      1,
+      {
+       "Fn::GetAZs": ""
+      }
+     ]
+    },
+    "CidrBlock": "10.0.1.0/24",
+    "MapPublicIpOnLaunch": true,
+    "Tags": [
+     {
+      "Key": "aws-cdk:subnet-name",
+      "Value": "public"
+     },
+     {
+      "Key": "aws-cdk:subnet-type",
+      "Value": "Public"
+     },
+     {
+      "Key": "kubernetes.io/role/elb",
+      "Value": "1"
+     },
+     {
+      "Key": "Name",
+      "Value": "CLWorkshopEC2AndEKS/workshopVpc/publicSubnet2"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/workshopVpc/publicSubnet2/Subnet"
+   }
+  },
+  "workshopVpcpublicSubnet2RouteTableAEACF0E2": {
+   "Type": "AWS::EC2::RouteTable",
+   "Properties": {
+    "VpcId": {
+     "Ref": "workshopVpcB999C4C5"
+    },
+    "Tags": [
+     {
+      "Key": "kubernetes.io/role/elb",
+      "Value": "1"
+     },
+     {
+      "Key": "Name",
+      "Value": "CLWorkshopEC2AndEKS/workshopVpc/publicSubnet2"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/workshopVpc/publicSubnet2/RouteTable"
+   }
+  },
+  "workshopVpcpublicSubnet2RouteTableAssociationF104557D": {
+   "Type": "AWS::EC2::SubnetRouteTableAssociation",
+   "Properties": {
+    "RouteTableId": {
+     "Ref": "workshopVpcpublicSubnet2RouteTableAEACF0E2"
+    },
+    "SubnetId": {
+     "Ref": "workshopVpcpublicSubnet2Subnet2D84D2A0"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/workshopVpc/publicSubnet2/RouteTableAssociation"
+   }
+  },
+  "workshopVpcpublicSubnet2DefaultRouteEB78228B": {
+   "Type": "AWS::EC2::Route",
+   "Properties": {
+    "RouteTableId": {
+     "Ref": "workshopVpcpublicSubnet2RouteTableAEACF0E2"
+    },
+    "DestinationCidrBlock": "0.0.0.0/0",
+    "GatewayId": {
+     "Ref": "workshopVpcIGW3C43A0CD"
+    }
+   },
+   "DependsOn": [
+    "workshopVpcVPCGWE9443FB8"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/workshopVpc/publicSubnet2/DefaultRoute"
+   }
+  },
+  "workshopVpcprivateSubnet1Subnet230C4CDE": {
+   "Type": "AWS::EC2::Subnet",
+   "Properties": {
+    "VpcId": {
+     "Ref": "workshopVpcB999C4C5"
+    },
+    "AvailabilityZone": {
+     "Fn::Select": [
+      0,
+      {
+       "Fn::GetAZs": ""
+      }
+     ]
+    },
+    "CidrBlock": "10.0.2.0/24",
+    "MapPublicIpOnLaunch": false,
+    "Tags": [
+     {
+      "Key": "aws-cdk:subnet-name",
+      "Value": "private"
+     },
+     {
+      "Key": "aws-cdk:subnet-type",
+      "Value": "Private"
+     },
+     {
+      "Key": "kubernetes.io/role/internal-elb",
+      "Value": "1"
+     },
+     {
+      "Key": "Name",
+      "Value": "CLWorkshopEC2AndEKS/workshopVpc/privateSubnet1"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/workshopVpc/privateSubnet1/Subnet"
+   }
+  },
+  "workshopVpcprivateSubnet1RouteTable253960B4": {
+   "Type": "AWS::EC2::RouteTable",
+   "Properties": {
+    "VpcId": {
+     "Ref": "workshopVpcB999C4C5"
+    },
+    "Tags": [
+     {
+      "Key": "kubernetes.io/role/internal-elb",
+      "Value": "1"
+     },
+     {
+      "Key": "Name",
+      "Value": "CLWorkshopEC2AndEKS/workshopVpc/privateSubnet1"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/workshopVpc/privateSubnet1/RouteTable"
+   }
+  },
+  "workshopVpcprivateSubnet1RouteTableAssociation822CDFC6": {
+   "Type": "AWS::EC2::SubnetRouteTableAssociation",
+   "Properties": {
+    "RouteTableId": {
+     "Ref": "workshopVpcprivateSubnet1RouteTable253960B4"
+    },
+    "SubnetId": {
+     "Ref": "workshopVpcprivateSubnet1Subnet230C4CDE"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/workshopVpc/privateSubnet1/RouteTableAssociation"
+   }
+  },
+  "workshopVpcprivateSubnet1DefaultRouteF1D49A73": {
+   "Type": "AWS::EC2::Route",
+   "Properties": {
+    "RouteTableId": {
+     "Ref": "workshopVpcprivateSubnet1RouteTable253960B4"
+    },
+    "DestinationCidrBlock": "0.0.0.0/0",
+    "NatGatewayId": {
+     "Ref": "workshopVpcpublicSubnet1NATGateway1270202C"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/workshopVpc/privateSubnet1/DefaultRoute"
+   }
+  },
+  "workshopVpcprivateSubnet2SubnetF66C2114": {
+   "Type": "AWS::EC2::Subnet",
+   "Properties": {
+    "VpcId": {
+     "Ref": "workshopVpcB999C4C5"
+    },
+    "AvailabilityZone": {
+     "Fn::Select": [
+      1,
+      {
+       "Fn::GetAZs": ""
+      }
+     ]
+    },
+    "CidrBlock": "10.0.3.0/24",
+    "MapPublicIpOnLaunch": false,
+    "Tags": [
+     {
+      "Key": "aws-cdk:subnet-name",
+      "Value": "private"
+     },
+     {
+      "Key": "aws-cdk:subnet-type",
+      "Value": "Private"
+     },
+     {
+      "Key": "kubernetes.io/role/internal-elb",
+      "Value": "1"
+     },
+     {
+      "Key": "Name",
+      "Value": "CLWorkshopEC2AndEKS/workshopVpc/privateSubnet2"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/workshopVpc/privateSubnet2/Subnet"
+   }
+  },
+  "workshopVpcprivateSubnet2RouteTable46E11A04": {
+   "Type": "AWS::EC2::RouteTable",
+   "Properties": {
+    "VpcId": {
+     "Ref": "workshopVpcB999C4C5"
+    },
+    "Tags": [
+     {
+      "Key": "kubernetes.io/role/internal-elb",
+      "Value": "1"
+     },
+     {
+      "Key": "Name",
+      "Value": "CLWorkshopEC2AndEKS/workshopVpc/privateSubnet2"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/workshopVpc/privateSubnet2/RouteTable"
+   }
+  },
+  "workshopVpcprivateSubnet2RouteTableAssociation2E2B65E5": {
+   "Type": "AWS::EC2::SubnetRouteTableAssociation",
+   "Properties": {
+    "RouteTableId": {
+     "Ref": "workshopVpcprivateSubnet2RouteTable46E11A04"
+    },
+    "SubnetId": {
+     "Ref": "workshopVpcprivateSubnet2SubnetF66C2114"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/workshopVpc/privateSubnet2/RouteTableAssociation"
+   }
+  },
+  "workshopVpcprivateSubnet2DefaultRoute90DDB5CC": {
+   "Type": "AWS::EC2::Route",
+   "Properties": {
+    "RouteTableId": {
+     "Ref": "workshopVpcprivateSubnet2RouteTable46E11A04"
+    },
+    "DestinationCidrBlock": "0.0.0.0/0",
+    "NatGatewayId": {
+     "Ref": "workshopVpcpublicSubnet1NATGateway1270202C"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/workshopVpc/privateSubnet2/DefaultRoute"
+   }
+  },
+  "workshopVpcIGW3C43A0CD": {
+   "Type": "AWS::EC2::InternetGateway",
+   "Properties": {
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "CLWorkshopEC2AndEKS/workshopVpc"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/workshopVpc/IGW"
+   }
+  },
+  "workshopVpcVPCGWE9443FB8": {
+   "Type": "AWS::EC2::VPCGatewayAttachment",
+   "Properties": {
+    "VpcId": {
+     "Ref": "workshopVpcB999C4C5"
+    },
+    "InternetGatewayId": {
+     "Ref": "workshopVpcIGW3C43A0CD"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/workshopVpc/VPCGW"
+   }
+  },
+  "logFakerStackOpenSearchLayerB1A64DCA": {
+   "Type": "AWS::Lambda::LayerVersion",
+   "Properties": {
+    "Content": {
+     "S3Bucket": {
+      "Fn::Sub": "aws-gcr-solutions-${AWS::Region}"
+     },
+     "S3Key": "log-hub-workshop/v2.0.2/954b04e107f7ce24beb56daa5619562a8aba267bf591eeb432ba177a0208001d.zip"
+    },
+    "CompatibleRuntimes": [
+     "python3.9"
+    ],
+    "Description": {
+     "Fn::Join": [
+      "",
+      [
+       {
+        "Ref": "AWS::StackName"
+       },
+       " - Lambda layer for Log Faker"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/logFakerStack/OpenSearchLayer/Resource",
+    "aws:asset:path": "asset.954b04e107f7ce24beb56daa5619562a8aba267bf591eeb432ba177a0208001d",
+    "aws:asset:is-bundled": true,
+    "aws:asset:property": "Content"
+   }
+  },
+  "logFakerStackfakeLogGeneratorPolicy16DA316B": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents",
+        "logs:PutSubscriptionFilter",
+        "logs:DeleteSubscriptionFilter",
+        "logs:DescribeLogGroups"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          "arn:",
+          {
+           "Ref": "AWS::Partition"
+          },
+          ":logs:",
+          {
+           "Ref": "AWS::Region"
+          },
+          ":",
+          {
+           "Ref": "AWS::AccountId"
+          },
+          ":*"
+         ]
+        ]
+       }
+      },
+      {
+       "Action": [
+        "s3:PutObject",
+        "s3:ListBucket",
+        "s3:PutObjectAcl",
+        "s3:AbortMultipartUpload",
+        "s3:ListBucketMultipartUploads",
+        "s3:ListMultipartUploadParts"
+       ],
+       "Effect": "Allow",
+       "Resource": "*"
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": {
+     "Fn::Join": [
+      "",
+      [
+       {
+        "Ref": "AWS::StackName"
+       },
+       "-fakeLogGeneratorPolicy"
+      ]
+     ]
+    },
+    "Roles": [
+     {
+      "Ref": "logFakerStackfakeLogGeneratorRole111F0084"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/logFakerStack/fakeLogGeneratorPolicy/Resource"
+   }
+  },
+  "logFakerStackfakeLogGeneratorRole111F0084": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/logFakerStack/fakeLogGeneratorRole/Resource"
+   }
+  },
+  "logFakerStackfakeLogGeneratorRoleDefaultPolicy9FB511CE": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "s3:DeleteObject*",
+        "s3:PutObject",
+        "s3:PutObjectLegalHold",
+        "s3:PutObjectRetention",
+        "s3:PutObjectTagging",
+        "s3:PutObjectVersionTagging",
+        "s3:Abort*"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":s3:::",
+           {
+            "Ref": "clWorkshopWeb089A8C58"
+           }
+          ]
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":s3:::",
+           {
+            "Ref": "clWorkshopWeb089A8C58"
+           },
+           "/*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "logFakerStackfakeLogGeneratorRoleDefaultPolicy9FB511CE",
+    "Roles": [
+     {
+      "Ref": "logFakerStackfakeLogGeneratorRole111F0084"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/logFakerStack/fakeLogGeneratorRole/DefaultPolicy/Resource"
+   }
+  },
+  "logFakerStackfakeLogGenerator132E8CCF": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": {
+      "Fn::Sub": "aws-gcr-solutions-${AWS::Region}"
+     },
+     "S3Key": "log-hub-workshop/v2.0.2/2fb9ea7ac07b6a39eb492a92aabe485a78fc35b174fb64815a9c1efc3f1901fd.zip"
+    },
+    "Role": {
+     "Fn::GetAtt": [
+      "logFakerStackfakeLogGeneratorRole111F0084",
+      "Arn"
+     ]
+    },
+    "Description": {
+     "Fn::Join": [
+      "",
+      [
+       {
+        "Ref": "AWS::StackName"
+       },
+       " - Create Fake Logs"
+      ]
+     ]
+    },
+    "Environment": {
+     "Variables": {
+      "DEFAULT_LOG_S3_BUCKET_NAME": {
+       "Ref": "clWorkshopWeb089A8C58"
+      },
+      "DEFAULT_LOG_S3_BUCKET_PREFIX": "distribution-access-logs/"
+     }
+    },
+    "Handler": "lambda_function.lambda_handler",
+    "Layers": [
+     {
+      "Ref": "logFakerStackOpenSearchLayerB1A64DCA"
+     }
+    ],
+    "MemorySize": 2048,
+    "Runtime": "python3.9",
+    "Timeout": 600
+   },
+   "DependsOn": [
+    "logFakerStackfakeLogGeneratorPolicy16DA316B",
+    "logFakerStackfakeLogGeneratorRoleDefaultPolicy9FB511CE",
+    "logFakerStackfakeLogGeneratorRole111F0084"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/logFakerStack/fakeLogGenerator/Resource",
+    "aws:asset:path": "asset.2fb9ea7ac07b6a39eb492a92aabe485a78fc35b174fb64815a9c1efc3f1901fd",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
+   }
+  },
+  "logFakerStackwidgetsapi2936839D": {
+   "Type": "AWS::ApiGateway::RestApi",
+   "Properties": {
+    "Description": "example api gateway",
+    "Name": "widgets-api",
+    "EndpointConfiguration": {
+      "Types": [ "REGIONAL" ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/logFakerStack/widgets-api/Resource"
+   }
+  },
+  "logFakerStackwidgetsapiCloudWatchRole6DE1ED0B": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "apigateway.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs"
+       ]
+      ]
+     }
+    ]
+   },
+   "UpdateReplacePolicy": "Retain",
+   "DeletionPolicy": "Retain",
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/logFakerStack/widgets-api/CloudWatchRole/Resource"
+   }
+  },
+  "logFakerStackwidgetsapiAccount1E2F3548": {
+   "Type": "AWS::ApiGateway::Account",
+   "Properties": {
+    "CloudWatchRoleArn": {
+     "Fn::GetAtt": [
+      "logFakerStackwidgetsapiCloudWatchRole6DE1ED0B",
+      "Arn"
+     ]
+    }
+   },
+   "DependsOn": [
+    "logFakerStackwidgetsapi2936839D"
+   ],
+   "UpdateReplacePolicy": "Retain",
+   "DeletionPolicy": "Retain",
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/logFakerStack/widgets-api/Account"
+   }
+  },
+  "logFakerStackwidgetsapiDeploymentF9234EEBe837872adaaf8ad55c25a16d07ad9d1c": {
+   "Type": "AWS::ApiGateway::Deployment",
+   "Properties": {
+    "RestApiId": {
+     "Ref": "logFakerStackwidgetsapi2936839D"
+    },
+    "Description": "example api gateway"
+   },
+   "DependsOn": [
+    "logFakerStackwidgetsapilogTypeOPTIONSBE60B210",
+    "logFakerStackwidgetsapilogTypePOST0903A422",
+    "logFakerStackwidgetsapilogType553AEFB9",
+    "logFakerStackwidgetsapiOPTIONS82CEBF2D"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/logFakerStack/widgets-api/Deployment/Resource"
+   }
+  },
+  "logFakerStackwidgetsapiDeploymentStagedev0BAB325E": {
+   "Type": "AWS::ApiGateway::Stage",
+   "Properties": {
+    "RestApiId": {
+     "Ref": "logFakerStackwidgetsapi2936839D"
+    },
+    "DeploymentId": {
+     "Ref": "logFakerStackwidgetsapiDeploymentF9234EEBe837872adaaf8ad55c25a16d07ad9d1c"
+    },
+    "StageName": "dev"
+   },
+   "DependsOn": [
+    "logFakerStackwidgetsapiAccount1E2F3548"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/logFakerStack/widgets-api/DeploymentStage.dev/Resource"
+   }
+  },
+  "logFakerStackwidgetsapiOPTIONS82CEBF2D": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "HttpMethod": "OPTIONS",
+    "ResourceId": {
+     "Fn::GetAtt": [
+      "logFakerStackwidgetsapi2936839D",
+      "RootResourceId"
+     ]
+    },
+    "RestApiId": {
+     "Ref": "logFakerStackwidgetsapi2936839D"
+    },
+    "AuthorizationType": "NONE",
+    "Integration": {
+     "IntegrationResponses": [
+      {
+       "ResponseParameters": {
+        "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key'",
+        "method.response.header.Access-Control-Allow-Origin": "'*'",
+        "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,GET,PUT,POST,DELETE,PATCH,HEAD'",
+        "method.response.header.Access-Control-Allow-Credentials": "'true'"
+       },
+       "StatusCode": "204"
+      }
+     ],
+     "RequestTemplates": {
+      "application/json": "{ statusCode: 200 }"
+     },
+     "Type": "MOCK"
+    },
+    "MethodResponses": [
+     {
+      "ResponseParameters": {
+       "method.response.header.Access-Control-Allow-Headers": true,
+       "method.response.header.Access-Control-Allow-Origin": true,
+       "method.response.header.Access-Control-Allow-Methods": true,
+       "method.response.header.Access-Control-Allow-Credentials": true
+      },
+      "StatusCode": "204"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/logFakerStack/widgets-api/Default/OPTIONS/Resource"
+   }
+  },
+  "logFakerStackwidgetsapilogType553AEFB9": {
+   "Type": "AWS::ApiGateway::Resource",
+   "Properties": {
+    "ParentId": {
+     "Fn::GetAtt": [
+      "logFakerStackwidgetsapi2936839D",
+      "RootResourceId"
+     ]
+    },
+    "PathPart": "{logType}",
+    "RestApiId": {
+     "Ref": "logFakerStackwidgetsapi2936839D"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/logFakerStack/widgets-api/Default/{logType}/Resource"
+   }
+  },
+  "logFakerStackwidgetsapilogTypeOPTIONSBE60B210": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "HttpMethod": "OPTIONS",
+    "ResourceId": {
+     "Ref": "logFakerStackwidgetsapilogType553AEFB9"
+    },
+    "RestApiId": {
+     "Ref": "logFakerStackwidgetsapi2936839D"
+    },
+    "AuthorizationType": "NONE",
+    "Integration": {
+     "IntegrationResponses": [
+      {
+       "ResponseParameters": {
+        "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key'",
+        "method.response.header.Access-Control-Allow-Origin": "'*'",
+        "method.response.header.Access-Control-Allow-Methods": "'OPTIONS,GET,PUT,POST,DELETE,PATCH,HEAD'",
+        "method.response.header.Access-Control-Allow-Credentials": "'true'"
+       },
+       "StatusCode": "204"
+      }
+     ],
+     "RequestTemplates": {
+      "application/json": "{ statusCode: 200 }"
+     },
+     "Type": "MOCK"
+    },
+    "MethodResponses": [
+     {
+      "ResponseParameters": {
+       "method.response.header.Access-Control-Allow-Headers": true,
+       "method.response.header.Access-Control-Allow-Origin": true,
+       "method.response.header.Access-Control-Allow-Methods": true,
+       "method.response.header.Access-Control-Allow-Credentials": true
+      },
+      "StatusCode": "204"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/logFakerStack/widgets-api/Default/{logType}/OPTIONS/Resource"
+   }
+  },
+  "logFakerStackwidgetsapilogTypePOSTApiPermissionCLWorkshopEC2AndEKSlogFakerStackwidgetsapi0C7CE39EPOSTlogTypeF7DB621D": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "logFakerStackfakeLogGenerator132E8CCF",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:",
+       {
+        "Ref": "AWS::Region"
+       },
+       ":",
+       {
+        "Ref": "AWS::AccountId"
+       },
+       ":",
+       {
+        "Ref": "logFakerStackwidgetsapi2936839D"
+       },
+       "/",
+       {
+        "Ref": "logFakerStackwidgetsapiDeploymentStagedev0BAB325E"
+       },
+       "/POST/*"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/logFakerStack/widgets-api/Default/{logType}/POST/ApiPermission.CLWorkshopEC2AndEKSlogFakerStackwidgetsapi0C7CE39E.POST..{logType}"
+   }
+  },
+  "logFakerStackwidgetsapilogTypePOSTApiPermissionTestCLWorkshopEC2AndEKSlogFakerStackwidgetsapi0C7CE39EPOSTlogType5BB92EE4": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "logFakerStackfakeLogGenerator132E8CCF",
+      "Arn"
+     ]
+    },
+    "Principal": "apigateway.amazonaws.com",
+    "SourceArn": {
+     "Fn::Join": [
+      "",
+      [
+       "arn:",
+       {
+        "Ref": "AWS::Partition"
+       },
+       ":execute-api:",
+       {
+        "Ref": "AWS::Region"
+       },
+       ":",
+       {
+        "Ref": "AWS::AccountId"
+       },
+       ":",
+       {
+        "Ref": "logFakerStackwidgetsapi2936839D"
+       },
+       "/test-invoke-stage/POST/*"
+      ]
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/logFakerStack/widgets-api/Default/{logType}/POST/ApiPermission.Test.CLWorkshopEC2AndEKSlogFakerStackwidgetsapi0C7CE39E.POST..{logType}"
+   }
+  },
+  "logFakerStackwidgetsapilogTypePOST0903A422": {
+   "Type": "AWS::ApiGateway::Method",
+   "Properties": {
+    "HttpMethod": "POST",
+    "ResourceId": {
+     "Ref": "logFakerStackwidgetsapilogType553AEFB9"
+    },
+    "RestApiId": {
+     "Ref": "logFakerStackwidgetsapi2936839D"
+    },
+    "AuthorizationType": "NONE",
+    "Integration": {
+     "IntegrationHttpMethod": "POST",
+     "Type": "AWS_PROXY",
+     "Uri": {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":apigateway:",
+        {
+         "Ref": "AWS::Region"
+        },
+        ":lambda:path/2015-03-31/functions/",
+        {
+         "Fn::GetAtt": [
+          "logFakerStackfakeLogGenerator132E8CCF",
+          "Arn"
+         ]
+        },
+        "/invocations"
+       ]
+      ]
+     }
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/logFakerStack/widgets-api/Default/{logType}/POST/Resource"
+   }
+  },
+  "logFakerStacks3FakeLogGeneratorDA6DF39F": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": {
+      "Fn::Sub": "aws-gcr-solutions-${AWS::Region}"
+     },
+     "S3Key": "log-hub-workshop/v2.0.2/3e73e4ae85e09b1fb8932bb26613489f34a25f28c4c7531071d2208253610ac7.zip"
+    },
+    "Role": {
+     "Fn::GetAtt": [
+      "logFakerStackfakeLogGeneratorRole111F0084",
+      "Arn"
+     ]
+    },
+    "Description": {
+     "Fn::Join": [
+      "",
+      [
+       {
+        "Ref": "AWS::StackName"
+       },
+       " - Create S3 Fake Logs"
+      ]
+     ]
+    },
+    "Environment": {
+     "Variables": {
+      "DEFAULT_LOG_S3_BUCKET_NAME": {
+       "Ref": "clWorkshopWeb089A8C58"
+      },
+      "DEFAULT_LOG_S3_BUCKET_PREFIX": "s3-as-source-logs/"
+     }
+    },
+    "Handler": "lambda_function.lambda_handler",
+    "Layers": [
+     {
+      "Ref": "logFakerStackOpenSearchLayerB1A64DCA"
+     }
+    ],
+    "MemorySize": 2048,
+    "Runtime": "python3.9",
+    "Timeout": 600
+   },
+   "DependsOn": [
+    "logFakerStackfakeLogGeneratorRoleDefaultPolicy9FB511CE",
+    "logFakerStackfakeLogGeneratorRole111F0084"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/logFakerStack/s3FakeLogGenerator/Resource",
+    "aws:asset:path": "asset.3e73e4ae85e09b1fb8932bb26613489f34a25f28c4c7531071d2208253610ac7",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
+   }
+  },
+  "logFakerStacks3LogGeneratorScheduleD4F1155F": {
+   "Type": "AWS::Events::Rule",
+   "Properties": {
+    "ScheduleExpression": "rate(1 minute)",
+    "State": "ENABLED",
+    "Targets": [
+     {
+      "Arn": {
+       "Fn::GetAtt": [
+        "logFakerStacks3FakeLogGeneratorDA6DF39F",
+        "Arn"
+       ]
+      },
+      "Id": "Target0"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/logFakerStack/s3LogGeneratorSchedule/Resource"
+   }
+  },
+  "logFakerStacks3LogGeneratorScheduleAllowEventRuleCLWorkshopEC2AndEKSlogFakerStacks3FakeLogGenerator22D4D06A66E578F9": {
+   "Type": "AWS::Lambda::Permission",
+   "Properties": {
+    "Action": "lambda:InvokeFunction",
+    "FunctionName": {
+     "Fn::GetAtt": [
+      "logFakerStacks3FakeLogGeneratorDA6DF39F",
+      "Arn"
+     ]
+    },
+    "Principal": "events.amazonaws.com",
+    "SourceArn": {
+     "Fn::GetAtt": [
+      "logFakerStacks3LogGeneratorScheduleD4F1155F",
+      "Arn"
+     ]
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/logFakerStack/s3LogGeneratorSchedule/AllowEventRuleCLWorkshopEC2AndEKSlogFakerStacks3FakeLogGenerator22D4D06A"
+   }
+  },
+  "rdsSecret9F108BD1": {
+   "Type": "AWS::SecretsManager::Secret",
+   "Properties": {
+    "Description": {
+     "Fn::Join": [
+      "",
+      [
+       "Generated by the CDK for stack: ",
+       {
+        "Ref": "AWS::StackName"
+       }
+      ]
+     ]
+    },
+    "GenerateSecretString": {
+     "ExcludeCharacters": " %+~`#$&*()|[]{}:;<>?!'/@\"\\",
+     "GenerateStringKey": "password",
+     "PasswordLength": 30,
+     "SecretStringTemplate": "{\"username\":\"admin\"}"
+    },
+    "Name": "workshopDBSecret"
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/rdsSecret/Resource"
+   }
+  },
+  "rdsSecretAttachmentDABCF06F": {
+   "Type": "AWS::SecretsManager::SecretTargetAttachment",
+   "Properties": {
+    "SecretId": {
+     "Ref": "rdsSecret9F108BD1"
+    },
+    "TargetId": {
+     "Ref": "workshopDBC31DB75F"
+    },
+    "TargetType": "AWS::RDS::DBInstance"
+   },
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/rdsSecret/Attachment/Resource"
+   }
+  },
+  "workshopDBSecurityGroup3B96128C": {
+   "Type": "AWS::EC2::SecurityGroup",
+   "Properties": {
+    "GroupDescription": "CLWorkshopEC2AndEKS/workshopDBSecurityGroup",
+    "SecurityGroupEgress": [
+     {
+      "CidrIp": "0.0.0.0/0",
+      "Description": "Allow all outbound traffic by default",
+      "IpProtocol": "-1"
+     }
+    ],
+    "VpcId": {
+     "Ref": "workshopVpcB999C4C5"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/workshopDBSecurityGroup/Resource"
+   }
+  },
+  "workshopDBSecurityGroupfromCLWorkshopEC2AndEKSec2ClusterStackworkshopASGInstanceSecurityGroup9E4DD7653306F8A86743": {
+   "Type": "AWS::EC2::SecurityGroupIngress",
+   "Properties": {
+    "IpProtocol": "tcp",
+    "Description": "from CLWorkshopEC2AndEKSec2ClusterStackworkshopASGInstanceSecurityGroup9E4DD765:3306",
+    "FromPort": 3306,
+    "GroupId": {
+     "Fn::GetAtt": [
+      "workshopDBSecurityGroup3B96128C",
+      "GroupId"
+     ]
+    },
+    "SourceSecurityGroupId": {
+     "Fn::GetAtt": [
+      "ec2ClusterStackworkshopASGInstanceSecurityGroup2CAEDB24",
+      "GroupId"
+     ]
+    },
+    "ToPort": 3306
+   },
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/workshopDBSecurityGroup/from CLWorkshopEC2AndEKSec2ClusterStackworkshopASGInstanceSecurityGroup9E4DD765:3306"
+   }
+  },
+  "workshopDBSecurityGroupfromCLWorkshopEC2AndEKSec2ClusterStackworkshopASGInstanceSecurityGroup9E4DD765229EA28662": {
+   "Type": "AWS::EC2::SecurityGroupIngress",
+   "Properties": {
+    "IpProtocol": "tcp",
+    "Description": "from CLWorkshopEC2AndEKSec2ClusterStackworkshopASGInstanceSecurityGroup9E4DD765:22",
+    "FromPort": 22,
+    "GroupId": {
+     "Fn::GetAtt": [
+      "workshopDBSecurityGroup3B96128C",
+      "GroupId"
+     ]
+    },
+    "SourceSecurityGroupId": {
+     "Fn::GetAtt": [
+      "ec2ClusterStackworkshopASGInstanceSecurityGroup2CAEDB24",
+      "GroupId"
+     ]
+    },
+    "ToPort": 22
+   },
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/workshopDBSecurityGroup/from CLWorkshopEC2AndEKSec2ClusterStackworkshopASGInstanceSecurityGroup9E4DD765:22"
+   }
+  },
+  "workshopDBSecurityGroupfromCLWorkshopEC2AndEKSeksClusterStackEKSClusterClusterSecurityGroupEB6CA81C33065F852377": {
+   "Type": "AWS::EC2::SecurityGroupIngress",
+   "Properties": {
+    "IpProtocol": "tcp",
+    "Description": "from CLWorkshopEC2AndEKSeksClusterStackEKSClusterClusterSecurityGroupEB6CA81C:3306",
+    "FromPort": 3306,
+    "GroupId": {
+     "Fn::GetAtt": [
+      "workshopDBSecurityGroup3B96128C",
+      "GroupId"
+     ]
+    },
+    "SourceSecurityGroupId": {
+     "Fn::GetAtt": [
+      "eksClusterStackEKSClusterED4C7603",
+      "ClusterSecurityGroupId"
+     ]
+    },
+    "ToPort": 3306
+   },
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/workshopDBSecurityGroup/from CLWorkshopEC2AndEKSeksClusterStackEKSClusterClusterSecurityGroupEB6CA81C:3306"
+   }
+  },
+  "workshopDBSecurityGroupfromCLWorkshopEC2AndEKSeksClusterStackEKSClusterControlPlaneSecurityGroup0392EA02330687680E0D": {
+   "Type": "AWS::EC2::SecurityGroupIngress",
+   "Properties": {
+    "IpProtocol": "tcp",
+    "Description": "from CLWorkshopEC2AndEKSeksClusterStackEKSClusterControlPlaneSecurityGroup0392EA02:3306",
+    "FromPort": 3306,
+    "GroupId": {
+     "Fn::GetAtt": [
+      "workshopDBSecurityGroup3B96128C",
+      "GroupId"
+     ]
+    },
+    "SourceSecurityGroupId": {
+     "Fn::GetAtt": [
+      "eksClusterStackEKSClusterControlPlaneSecurityGroupB2E3CF2B",
+      "GroupId"
+     ]
+    },
+    "ToPort": 3306
+   },
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/workshopDBSecurityGroup/from CLWorkshopEC2AndEKSeksClusterStackEKSClusterControlPlaneSecurityGroup0392EA02:3306"
+   }
+  },
+  "parameterGroupFE655916": {
+   "Type": "AWS::RDS::DBParameterGroup",
+   "Properties": {
+    "Description": "Parameter group for mysql8.0",
+    "Family": "mysql8.0",
+    "Parameters": {
+     "slow_query_log": "1",
+     "long_query_time": "1",
+     "log_output": "FILE"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/parameterGroup/Resource"
+   }
+  },
+  "optionGroup96B0B769": {
+   "Type": "AWS::RDS::OptionGroup",
+   "Properties": {
+    "EngineName": "mysql",
+    "MajorEngineVersion": "8.0",
+    "OptionGroupDescription": "Option group for mysql 8.0",
+    "OptionConfigurations": [
+     {
+      "OptionName": "MARIADB_AUDIT_PLUGIN"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/optionGroup/Resource"
+   }
+  },
+  "workshopDBSubnetGroup447705CD": {
+   "Type": "AWS::RDS::DBSubnetGroup",
+   "Properties": {
+    "DBSubnetGroupDescription": "Subnet group for workshopDB database",
+    "SubnetIds": [
+     {
+      "Ref": "workshopVpcprivateSubnet1Subnet230C4CDE"
+     },
+     {
+      "Ref": "workshopVpcprivateSubnet2SubnetF66C2114"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/workshopDB/SubnetGroup/Default"
+   }
+  },
+  "workshopDBC31DB75F": {
+   "Type": "AWS::RDS::DBInstance",
+   "Properties": {
+    "AllocatedStorage": "100",
+    "BackupRetentionPeriod": 0,
+    "CopyTagsToSnapshot": true,
+    "DBInstanceClass": "db.t2.micro",
+    "DBInstanceIdentifier": "workshop-db",
+    "DBName": "workshopDB",
+    "DBParameterGroupName": {
+     "Ref": "parameterGroupFE655916"
+    },
+    "DBSubnetGroupName": {
+     "Ref": "workshopDBSubnetGroup447705CD"
+    },
+    "EnableCloudwatchLogsExports": [
+     "error",
+     "slowquery",
+     "audit"
+    ],
+    "Engine": "mysql",
+    "EngineVersion": "8.0.31",
+    "MasterUsername": "admin",
+    "MasterUserPassword": {
+     "Fn::Join": [
+      "",
+      [
+       "{{resolve:secretsmanager:",
+       {
+        "Ref": "rdsSecret9F108BD1"
+       },
+       ":SecretString:password::}}"
+      ]
+     ]
+    },
+    "OptionGroupName": {
+     "Ref": "optionGroup96B0B769"
+    },
+    "PubliclyAccessible": false,
+    "StorageType": "gp2",
+    "VPCSecurityGroups": [
+     {
+      "Fn::GetAtt": [
+       "workshopDBSecurityGroup3B96128C",
+       "GroupId"
+      ]
+     }
+    ]
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/workshopDB/Resource"
+   }
+  },
+  "ec2ClusterStackworkshopASGInstanceSecurityGroup2CAEDB24": {
+   "Type": "AWS::EC2::SecurityGroup",
+   "Properties": {
+    "GroupDescription": "CLWorkshopEC2AndEKS/ec2ClusterStack/workshopASG/InstanceSecurityGroup",
+    "SecurityGroupEgress": [
+     {
+      "CidrIp": "0.0.0.0/0",
+      "Description": "Allow all outbound traffic by default",
+      "IpProtocol": "-1"
+     }
+    ],
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "CLWorkshopEC2AndEKS/ec2ClusterStack/workshopASG"
+     }
+    ],
+    "VpcId": {
+     "Ref": "workshopVpcB999C4C5"
+    }
+   },
+   "DependsOn": [
+    "CDNWorkshopAssetsD305196A",
+    "DeployWorkshopWebAwsCliLayer34186108",
+    "DeployWorkshopWebCustomResource87DDAEB7",
+    "logFakerStackfakeLogGenerator132E8CCF",
+    "logFakerStackfakeLogGeneratorPolicy16DA316B",
+    "logFakerStackfakeLogGeneratorRoleDefaultPolicy9FB511CE",
+    "logFakerStackfakeLogGeneratorRole111F0084",
+    "logFakerStackOpenSearchLayerB1A64DCA",
+    "logFakerStacks3FakeLogGeneratorDA6DF39F",
+    "logFakerStacks3LogGeneratorScheduleAllowEventRuleCLWorkshopEC2AndEKSlogFakerStacks3FakeLogGenerator22D4D06A66E578F9",
+    "logFakerStacks3LogGeneratorScheduleD4F1155F",
+    "logFakerStackwidgetsapiAccount1E2F3548",
+    "logFakerStackwidgetsapiCloudWatchRole6DE1ED0B",
+    "logFakerStackwidgetsapilogTypeOPTIONSBE60B210",
+    "logFakerStackwidgetsapilogTypePOSTApiPermissionCLWorkshopEC2AndEKSlogFakerStackwidgetsapi0C7CE39EPOSTlogTypeF7DB621D",
+    "logFakerStackwidgetsapilogTypePOSTApiPermissionTestCLWorkshopEC2AndEKSlogFakerStackwidgetsapi0C7CE39EPOSTlogType5BB92EE4",
+    "logFakerStackwidgetsapilogTypePOST0903A422",
+    "logFakerStackwidgetsapilogType553AEFB9",
+    "logFakerStackwidgetsapiOPTIONS82CEBF2D",
+    "logFakerStackwidgetsapiDeploymentF9234EEBe837872adaaf8ad55c25a16d07ad9d1c",
+    "logFakerStackwidgetsapiDeploymentStagedev0BAB325E",
+    "logFakerStackwidgetsapi2936839D",
+    "workshopDBC31DB75F",
+    "workshopDBSubnetGroup447705CD"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/ec2ClusterStack/workshopASG/InstanceSecurityGroup/Resource"
+   }
+  },
+  "ec2ClusterStackworkshopASGInstanceSecurityGroupfromCLWorkshopEC2AndEKSec2ClusterStackworkshopEC2AlbSecurityGroupF889795E801350D171": {
+   "Type": "AWS::EC2::SecurityGroupIngress",
+   "Properties": {
+    "IpProtocol": "tcp",
+    "Description": "Load balancer to target",
+    "FromPort": 80,
+    "GroupId": {
+     "Fn::GetAtt": [
+      "ec2ClusterStackworkshopASGInstanceSecurityGroup2CAEDB24",
+      "GroupId"
+     ]
+    },
+    "SourceSecurityGroupId": {
+     "Fn::GetAtt": [
+      "ec2ClusterStackworkshopEC2AlbSecurityGroup8E79E822",
+      "GroupId"
+     ]
+    },
+    "ToPort": 80
+   },
+   "DependsOn": [
+    "CDNWorkshopAssetsD305196A",
+    "DeployWorkshopWebAwsCliLayer34186108",
+    "DeployWorkshopWebCustomResource87DDAEB7",
+    "logFakerStackfakeLogGenerator132E8CCF",
+    "logFakerStackfakeLogGeneratorPolicy16DA316B",
+    "logFakerStackfakeLogGeneratorRoleDefaultPolicy9FB511CE",
+    "logFakerStackfakeLogGeneratorRole111F0084",
+    "logFakerStackOpenSearchLayerB1A64DCA",
+    "logFakerStacks3FakeLogGeneratorDA6DF39F",
+    "logFakerStacks3LogGeneratorScheduleAllowEventRuleCLWorkshopEC2AndEKSlogFakerStacks3FakeLogGenerator22D4D06A66E578F9",
+    "logFakerStacks3LogGeneratorScheduleD4F1155F",
+    "logFakerStackwidgetsapiAccount1E2F3548",
+    "logFakerStackwidgetsapiCloudWatchRole6DE1ED0B",
+    "logFakerStackwidgetsapilogTypeOPTIONSBE60B210",
+    "logFakerStackwidgetsapilogTypePOSTApiPermissionCLWorkshopEC2AndEKSlogFakerStackwidgetsapi0C7CE39EPOSTlogTypeF7DB621D",
+    "logFakerStackwidgetsapilogTypePOSTApiPermissionTestCLWorkshopEC2AndEKSlogFakerStackwidgetsapi0C7CE39EPOSTlogType5BB92EE4",
+    "logFakerStackwidgetsapilogTypePOST0903A422",
+    "logFakerStackwidgetsapilogType553AEFB9",
+    "logFakerStackwidgetsapiOPTIONS82CEBF2D",
+    "logFakerStackwidgetsapiDeploymentF9234EEBe837872adaaf8ad55c25a16d07ad9d1c",
+    "logFakerStackwidgetsapiDeploymentStagedev0BAB325E",
+    "logFakerStackwidgetsapi2936839D",
+    "workshopDBC31DB75F",
+    "workshopDBSubnetGroup447705CD"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/ec2ClusterStack/workshopASG/InstanceSecurityGroup/from CLWorkshopEC2AndEKSec2ClusterStackworkshopEC2AlbSecurityGroupF889795E:80"
+   }
+  },
+  "ec2ClusterStackworkshopASGInstanceRoleF8FA1BC9": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "ec2.amazonaws.com.cn"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/AmazonSSMManagedInstanceCore"
+       ]
+      ]
+     },
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/SecretsManagerReadWrite"
+       ]
+      ]
+     },
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/AmazonS3ReadOnlyAccess"
+       ]
+      ]
+     }
+    ],
+    "Tags": [
+     {
+      "Key": "Name",
+      "Value": "CLWorkshopEC2AndEKS/ec2ClusterStack/workshopASG"
+     }
+    ]
+   },
+   "DependsOn": [
+    "CDNWorkshopAssetsD305196A",
+    "DeployWorkshopWebAwsCliLayer34186108",
+    "DeployWorkshopWebCustomResource87DDAEB7",
+    "logFakerStackfakeLogGenerator132E8CCF",
+    "logFakerStackfakeLogGeneratorPolicy16DA316B",
+    "logFakerStackfakeLogGeneratorRoleDefaultPolicy9FB511CE",
+    "logFakerStackfakeLogGeneratorRole111F0084",
+    "logFakerStackOpenSearchLayerB1A64DCA",
+    "logFakerStacks3FakeLogGeneratorDA6DF39F",
+    "logFakerStacks3LogGeneratorScheduleAllowEventRuleCLWorkshopEC2AndEKSlogFakerStacks3FakeLogGenerator22D4D06A66E578F9",
+    "logFakerStacks3LogGeneratorScheduleD4F1155F",
+    "logFakerStackwidgetsapiAccount1E2F3548",
+    "logFakerStackwidgetsapiCloudWatchRole6DE1ED0B",
+    "logFakerStackwidgetsapilogTypeOPTIONSBE60B210",
+    "logFakerStackwidgetsapilogTypePOSTApiPermissionCLWorkshopEC2AndEKSlogFakerStackwidgetsapi0C7CE39EPOSTlogTypeF7DB621D",
+    "logFakerStackwidgetsapilogTypePOSTApiPermissionTestCLWorkshopEC2AndEKSlogFakerStackwidgetsapi0C7CE39EPOSTlogType5BB92EE4",
+    "logFakerStackwidgetsapilogTypePOST0903A422",
+    "logFakerStackwidgetsapilogType553AEFB9",
+    "logFakerStackwidgetsapiOPTIONS82CEBF2D",
+    "logFakerStackwidgetsapiDeploymentF9234EEBe837872adaaf8ad55c25a16d07ad9d1c",
+    "logFakerStackwidgetsapiDeploymentStagedev0BAB325E",
+    "logFakerStackwidgetsapi2936839D",
+    "workshopDBC31DB75F",
+    "workshopDBSubnetGroup447705CD"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/ec2ClusterStack/workshopASG/InstanceRole/Resource"
+   }
+  },
+  "ec2ClusterStackworkshopASGInstanceRoleDefaultPolicy215CFF5A": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": "cloudformation:SignalResource",
+       "Effect": "Allow",
+       "Resource": {
+        "Ref": "AWS::StackId"
+       }
+      },
+      {
+       "Action": [
+        "cloudformation:DescribeStackResource",
+        "cloudformation:SignalResource"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Ref": "AWS::StackId"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "ec2ClusterStackworkshopASGInstanceRoleDefaultPolicy215CFF5A",
+    "Roles": [
+     {
+      "Ref": "ec2ClusterStackworkshopASGInstanceRoleF8FA1BC9"
+     }
+    ]
+   },
+   "DependsOn": [
+    "CDNWorkshopAssetsD305196A",
+    "DeployWorkshopWebAwsCliLayer34186108",
+    "DeployWorkshopWebCustomResource87DDAEB7",
+    "logFakerStackfakeLogGenerator132E8CCF",
+    "logFakerStackfakeLogGeneratorPolicy16DA316B",
+    "logFakerStackfakeLogGeneratorRoleDefaultPolicy9FB511CE",
+    "logFakerStackfakeLogGeneratorRole111F0084",
+    "logFakerStackOpenSearchLayerB1A64DCA",
+    "logFakerStacks3FakeLogGeneratorDA6DF39F",
+    "logFakerStacks3LogGeneratorScheduleAllowEventRuleCLWorkshopEC2AndEKSlogFakerStacks3FakeLogGenerator22D4D06A66E578F9",
+    "logFakerStacks3LogGeneratorScheduleD4F1155F",
+    "logFakerStackwidgetsapiAccount1E2F3548",
+    "logFakerStackwidgetsapiCloudWatchRole6DE1ED0B",
+    "logFakerStackwidgetsapilogTypeOPTIONSBE60B210",
+    "logFakerStackwidgetsapilogTypePOSTApiPermissionCLWorkshopEC2AndEKSlogFakerStackwidgetsapi0C7CE39EPOSTlogTypeF7DB621D",
+    "logFakerStackwidgetsapilogTypePOSTApiPermissionTestCLWorkshopEC2AndEKSlogFakerStackwidgetsapi0C7CE39EPOSTlogType5BB92EE4",
+    "logFakerStackwidgetsapilogTypePOST0903A422",
+    "logFakerStackwidgetsapilogType553AEFB9",
+    "logFakerStackwidgetsapiOPTIONS82CEBF2D",
+    "logFakerStackwidgetsapiDeploymentF9234EEBe837872adaaf8ad55c25a16d07ad9d1c",
+    "logFakerStackwidgetsapiDeploymentStagedev0BAB325E",
+    "logFakerStackwidgetsapi2936839D",
+    "workshopDBC31DB75F",
+    "workshopDBSubnetGroup447705CD"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/ec2ClusterStack/workshopASG/InstanceRole/DefaultPolicy/Resource"
+   }
+  },
+  "ec2ClusterStackworkshopASGInstanceProfileFBD9E6DD": {
+   "Type": "AWS::IAM::InstanceProfile",
+   "Properties": {
+    "Roles": [
+     {
+      "Ref": "ec2ClusterStackworkshopASGInstanceRoleF8FA1BC9"
+     }
+    ]
+   },
+   "DependsOn": [
+    "CDNWorkshopAssetsD305196A",
+    "DeployWorkshopWebAwsCliLayer34186108",
+    "DeployWorkshopWebCustomResource87DDAEB7",
+    "logFakerStackfakeLogGenerator132E8CCF",
+    "logFakerStackfakeLogGeneratorPolicy16DA316B",
+    "logFakerStackfakeLogGeneratorRoleDefaultPolicy9FB511CE",
+    "logFakerStackfakeLogGeneratorRole111F0084",
+    "logFakerStackOpenSearchLayerB1A64DCA",
+    "logFakerStacks3FakeLogGeneratorDA6DF39F",
+    "logFakerStacks3LogGeneratorScheduleAllowEventRuleCLWorkshopEC2AndEKSlogFakerStacks3FakeLogGenerator22D4D06A66E578F9",
+    "logFakerStacks3LogGeneratorScheduleD4F1155F",
+    "logFakerStackwidgetsapiAccount1E2F3548",
+    "logFakerStackwidgetsapiCloudWatchRole6DE1ED0B",
+    "logFakerStackwidgetsapilogTypeOPTIONSBE60B210",
+    "logFakerStackwidgetsapilogTypePOSTApiPermissionCLWorkshopEC2AndEKSlogFakerStackwidgetsapi0C7CE39EPOSTlogTypeF7DB621D",
+    "logFakerStackwidgetsapilogTypePOSTApiPermissionTestCLWorkshopEC2AndEKSlogFakerStackwidgetsapi0C7CE39EPOSTlogType5BB92EE4",
+    "logFakerStackwidgetsapilogTypePOST0903A422",
+    "logFakerStackwidgetsapilogType553AEFB9",
+    "logFakerStackwidgetsapiOPTIONS82CEBF2D",
+    "logFakerStackwidgetsapiDeploymentF9234EEBe837872adaaf8ad55c25a16d07ad9d1c",
+    "logFakerStackwidgetsapiDeploymentStagedev0BAB325E",
+    "logFakerStackwidgetsapi2936839D",
+    "workshopDBC31DB75F",
+    "workshopDBSubnetGroup447705CD"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/ec2ClusterStack/workshopASG/InstanceProfile"
+   }
+  },
+  "ec2ClusterStackworkshopASGLaunchConfig37E8259F": {
+   "Type": "AWS::AutoScaling::LaunchConfiguration",
+   "Properties": {
+    "ImageId": {
+     "Ref": "SsmParameterValueawsserviceamiamazonlinuxlatestamzn2amihvmarm64gp2C96584B6F00A464EAD1953AFF4B05118Parameter"
+    },
+    "InstanceType": "t4g.large",
+    "IamInstanceProfile": {
+     "Ref": "ec2ClusterStackworkshopASGInstanceProfileFBD9E6DD"
+    },
+    "SecurityGroups": [
+     {
+      "Fn::GetAtt": [
+       "ec2ClusterStackworkshopASGInstanceSecurityGroup2CAEDB24",
+       "GroupId"
+      ]
+     }
+    ],
+    "UserData": {
+     "Fn::Base64": {
+      "Fn::Join": [
+       "",
+       [
+        "#!/bin/bash\n# fingerprint: 356e0db8316bbe61\n(\n  set +e\n  /opt/aws/bin/cfn-init -v --region ",
+        {
+         "Ref": "AWS::Region"
+        },
+        " --stack ",
+        {
+         "Ref": "AWS::StackName"
+        },
+        " --resource ec2ClusterStackworkshopASGF42A2EFF -c default\n  /opt/aws/bin/cfn-signal -e $? --region ",
+        {
+         "Ref": "AWS::Region"
+        },
+        " --stack ",
+        {
+         "Ref": "AWS::StackName"
+        },
+        " --resource ec2ClusterStackworkshopASGF42A2EFF\n  cat /var/log/cfn-init.log >&2\n)\n#!/bin/bash\n\nsudo su\nyum update -y\namazon-linux-extras install -y nginx1 java-openjdk11\nyum install -y mysql\n\n## Install Node and npm\ncurl -sL https://raw.githubusercontent.com/nvm-sh/nvm/v0.34.0/install.sh| bash\nexport NVM_DIR=\"$HOME/.nvm\"\n[ -s \"$NVM_DIR/nvm.sh\" ] && \\. \"$NVM_DIR/nvm.sh\"\nnvm install v17\n\nmkdir -p /var/www/inc\nmkdir -p /var/www/ui\nmkdir -p /var/www/server\n\n## Run Java app\nwget https://aws-gcr-solutions.s3.amazonaws.com/log-hub-workshop/v1.0.0/petstore-0.0.1-SNAPSHOT.jar\necho '",
+        {
+         "Ref": "workshopDBC31DB75F"
+        },
+        "'\naws s3 cp 's3://",
+        {
+         "Ref": "clWorkshopWeb089A8C58"
+        },
+        "/ui' '/var/www/ui' --recursive\naws s3 cp 's3://",
+        {
+         "Ref": "clWorkshopWeb089A8C58"
+        },
+        "/server' '/var/www/server' --recursive\necho $(aws secretsmanager get-secret-value --secret-id workshopDBSecret --query SecretString --output json --region ",
+        {
+         "Ref": "AWS::Region"
+        },
+        ") > /var/www/inc/dbinfo.json\necho 'var a  = JSON.parse(require(\"/var/www/inc/dbinfo.json\"));      var b = require(\"/var/www/server/ormconfig.json\");      var output = Object.assign({}, b, a);      output.database = a.dbname;      var fs = require(\"fs\");      fs.writeFile(\"/var/www/server/ormconfig.json\", JSON.stringify(output), function(err){});' > mergeDBInfo.js\nnode mergeDBInfo.js\ncd /var/www/ui\nsed -i \"s/OpenSearch Workshop/OpenSearch Workshop (EC2)/\" /var/www/ui/public/index.html\nsed -i \"s/OpenSearch Workshop/OpenSearch Workshop (EC2)/\" /var/www/ui/src/pages/common/Nav.tsx\nnpm install && npm run build\nyes | cp -r /var/www/ui/build/* /usr/share/nginx/html/\nchkconfig nginx on\nservice nginx start\nservice nginx restart\nsed -i 's/$WORKSHOP_CDN_DOMAIN/",
+        {
+         "Fn::GetAtt": [
+          "CDNWorkshopAssetsD305196A",
+          "DomainName"
+         ]
+        },
+        "/' /var/www/server/src/controllers/mockdata.ts\nsed -i 's/daily/monthly/' /etc/logrotate.d/nginx\necho \"{\\\"fakerAPIUrl\\\":\\\"https://",
+        {
+         "Ref": "logFakerStackwidgetsapi2936839D"
+        },
+        ".execute-api.",
+        {
+         "Ref": "AWS::Region"
+        },
+        ".",
+        {
+         "Ref": "AWS::URLSuffix"
+        },
+        "/",
+        {
+         "Ref": "logFakerStackwidgetsapiDeploymentStagedev0BAB325E"
+        },
+        "/\\\"}\" > /usr/share/nginx/html/config.json\nchmod a+x /etc/init.d/java.sh\nchkconfig --add /etc/init.d/java.sh\nchkconfig on java.sh\nservice java.sh start\nchmod a+x /etc/init.d/node.sh\nchkconfig --add /etc/init.d/node.sh\nchkconfig on node.sh\nservice node.sh start"
+       ]
+      ]
+     }
+    }
+   },
+   "DependsOn": [
+    "CDNWorkshopAssetsD305196A",
+    "DeployWorkshopWebAwsCliLayer34186108",
+    "DeployWorkshopWebCustomResource87DDAEB7",
+    "ec2ClusterStackworkshopASGInstanceRoleDefaultPolicy215CFF5A",
+    "ec2ClusterStackworkshopASGInstanceRoleF8FA1BC9",
+    "logFakerStackfakeLogGenerator132E8CCF",
+    "logFakerStackfakeLogGeneratorPolicy16DA316B",
+    "logFakerStackfakeLogGeneratorRoleDefaultPolicy9FB511CE",
+    "logFakerStackfakeLogGeneratorRole111F0084",
+    "logFakerStackOpenSearchLayerB1A64DCA",
+    "logFakerStacks3FakeLogGeneratorDA6DF39F",
+    "logFakerStacks3LogGeneratorScheduleAllowEventRuleCLWorkshopEC2AndEKSlogFakerStacks3FakeLogGenerator22D4D06A66E578F9",
+    "logFakerStacks3LogGeneratorScheduleD4F1155F",
+    "logFakerStackwidgetsapiAccount1E2F3548",
+    "logFakerStackwidgetsapiCloudWatchRole6DE1ED0B",
+    "logFakerStackwidgetsapilogTypeOPTIONSBE60B210",
+    "logFakerStackwidgetsapilogTypePOSTApiPermissionCLWorkshopEC2AndEKSlogFakerStackwidgetsapi0C7CE39EPOSTlogTypeF7DB621D",
+    "logFakerStackwidgetsapilogTypePOSTApiPermissionTestCLWorkshopEC2AndEKSlogFakerStackwidgetsapi0C7CE39EPOSTlogType5BB92EE4",
+    "logFakerStackwidgetsapilogTypePOST0903A422",
+    "logFakerStackwidgetsapilogType553AEFB9",
+    "logFakerStackwidgetsapiOPTIONS82CEBF2D",
+    "logFakerStackwidgetsapiDeploymentF9234EEBe837872adaaf8ad55c25a16d07ad9d1c",
+    "logFakerStackwidgetsapiDeploymentStagedev0BAB325E",
+    "logFakerStackwidgetsapi2936839D",
+    "workshopDBC31DB75F",
+    "workshopDBSubnetGroup447705CD"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/ec2ClusterStack/workshopASG/LaunchConfig"
+   }
+  },
+  "ec2ClusterStackworkshopASGF42A2EFF": {
+   "Type": "AWS::AutoScaling::AutoScalingGroup",
+   "Properties": {
+    "MaxSize": "2",
+    "MinSize": "2",
+    "DesiredCapacity": "2",
+    "LaunchConfigurationName": {
+     "Ref": "ec2ClusterStackworkshopASGLaunchConfig37E8259F"
+    },
+    "Tags": [
+     {
+      "Key": "Name",
+      "PropagateAtLaunch": true,
+      "Value": "CLWorkshopEC2AndEKS/ec2ClusterStack/workshopASG"
+     }
+    ],
+    "TargetGroupARNs": [
+     {
+      "Ref": "ec2ClusterStackworkshopEC2AlbListenerEC2ApplicationFleetEC2Group50446707"
+     }
+    ],
+    "VPCZoneIdentifier": [
+     {
+      "Ref": "workshopVpcprivateSubnet1Subnet230C4CDE"
+     },
+     {
+      "Ref": "workshopVpcprivateSubnet2SubnetF66C2114"
+     }
+    ]
+   },
+   "DependsOn": [
+    "CDNWorkshopAssetsD305196A",
+    "DeployWorkshopWebAwsCliLayer34186108",
+    "DeployWorkshopWebCustomResource87DDAEB7",
+    "logFakerStackfakeLogGenerator132E8CCF",
+    "logFakerStackfakeLogGeneratorPolicy16DA316B",
+    "logFakerStackfakeLogGeneratorRoleDefaultPolicy9FB511CE",
+    "logFakerStackfakeLogGeneratorRole111F0084",
+    "logFakerStackOpenSearchLayerB1A64DCA",
+    "logFakerStacks3FakeLogGeneratorDA6DF39F",
+    "logFakerStacks3LogGeneratorScheduleAllowEventRuleCLWorkshopEC2AndEKSlogFakerStacks3FakeLogGenerator22D4D06A66E578F9",
+    "logFakerStacks3LogGeneratorScheduleD4F1155F",
+    "logFakerStackwidgetsapiAccount1E2F3548",
+    "logFakerStackwidgetsapiCloudWatchRole6DE1ED0B",
+    "logFakerStackwidgetsapilogTypeOPTIONSBE60B210",
+    "logFakerStackwidgetsapilogTypePOSTApiPermissionCLWorkshopEC2AndEKSlogFakerStackwidgetsapi0C7CE39EPOSTlogTypeF7DB621D",
+    "logFakerStackwidgetsapilogTypePOSTApiPermissionTestCLWorkshopEC2AndEKSlogFakerStackwidgetsapi0C7CE39EPOSTlogType5BB92EE4",
+    "logFakerStackwidgetsapilogTypePOST0903A422",
+    "logFakerStackwidgetsapilogType553AEFB9",
+    "logFakerStackwidgetsapiOPTIONS82CEBF2D",
+    "logFakerStackwidgetsapiDeploymentF9234EEBe837872adaaf8ad55c25a16d07ad9d1c",
+    "logFakerStackwidgetsapiDeploymentStagedev0BAB325E",
+    "logFakerStackwidgetsapi2936839D",
+    "workshopDBC31DB75F",
+    "workshopDBSubnetGroup447705CD"
+   ],
+   "CreationPolicy": {
+    "ResourceSignal": {
+     "Count": 2
+    }
+   },
+   "UpdatePolicy": {
+    "AutoScalingRollingUpdate": {
+     "SuspendProcesses": [
+      "HealthCheck",
+      "ReplaceUnhealthy",
+      "AZRebalance",
+      "AlarmNotification",
+      "ScheduledActions"
+     ],
+     "WaitOnResourceSignals": true
+    },
+    "AutoScalingScheduledAction": {
+     "IgnoreUnmodifiedGroupSizeProperties": true
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/ec2ClusterStack/workshopASG/ASG",
+    "AWS::CloudFormation::Init": {
+     "configSets": {
+      "default": [
+       "config"
+      ]
+     },
+     "config": {
+      "files": {
+       "/etc/nginx/nginx.conf": {
+        "content": "# For more information on configuration, see:\n#   * Official English Documentation: http://nginx.org/en/docs/\n#   * Official Russian Documentation: http://nginx.org/ru/docs/\n\nuser nginx;\nworker_processes auto;\nerror_log /var/log/nginx/error.log;\npid /run/nginx.pid;\n\n# Load dynamic modules. See /usr/share/doc/nginx/README.dynamic.\ninclude /usr/share/nginx/modules/*.conf;\n\nevents {\n    worker_connections 1024;\n}\n\nhttp {\n    log_format  main  '$remote_addr - $remote_user [$time_local] \"$request\" '\n                      '$status $body_bytes_sent \"$http_referer\" '\n                      '\"$http_user_agent\" \"$http_x_forwarded_for\"';\n\n    access_log  /var/log/nginx/access.log  main;\n\n    sendfile            on;\n    tcp_nopush          on;\n    tcp_nodelay         on;\n    keepalive_timeout   65;\n    types_hash_max_size 4096;\n\n    include             /etc/nginx/mime.types;\n    default_type        application/octet-stream;\n\n    # Load modular configuration files from the /etc/nginx/conf.d directory.\n    # See http://nginx.org/en/docs/ngx_core_module.html#include\n    # for more information.\n    include /etc/nginx/conf.d/*.conf;\n\n    server {\n        listen       80;\n        listen       [::]:80;\n        server_name  _;\n        root         /usr/share/nginx/html;\n\n        # Load configuration files for the default server block.\n        include /etc/nginx/default.d/*.conf;\n\n\n        location = /404.html {\n        }\n\n        error_page 500 502 503 504 /50x.html;\n        location = /50x.html {\n        }\n\n        location / {\n                try_files $uri /index.html;\n        }\n\n        location /api/ {\n                proxy_pass http://127.0.0.1:4000/;\n        }\n\n        location /java/ {\n                proxy_pass http://127.0.0.1:8080/;\n        }\n        }\n\n# Settings for a TLS enabled server.\n#\n#    server {\n#        listen       443 ssl http2;\n#        listen       [::]:443 ssl http2;\n#        server_name  _;\n#        root         /usr/share/nginx/html;\n#\n#        ssl_certificate \"/etc/pki/nginx/server.crt\";\n#        ssl_certificate_key \"/etc/pki/nginx/private/server.key\";\n#        ssl_session_cache shared:SSL:1m;\n#        ssl_session_timeout  10m;\n#        ssl_ciphers PROFILE=SYSTEM;\n#        ssl_prefer_server_ciphers on;\n#\n#        # Load configuration files for the default server block.\n#        include /etc/nginx/default.d/*.conf;\n#\n#        error_page 404 /404.html;\n#            location = /40x.html {\n#        }\n#\n#        error_page 500 502 503 504 /50x.html;\n#            location = /50x.html {\n#        }\n#    }\n\n}",
+        "encoding": "plain",
+        "mode": "000644",
+        "owner": "root",
+        "group": "root"
+       },
+       "/etc/init.d/java.sh": {
+        "content": "#!/bin/bash\n#chkconfig: 2345 80 90\n#description:start java\nSERVICE_NAME=java\nPATH_TO_JAR=/petstore-0.0.1-SNAPSHOT.jar\nPID_PATH_NAME=/var/run/$SERVICE_NAME.pid\ncase $1 in\n    start)\n        echo \"Starting $SERVICE_NAME ...\"\n        if [ ! -f $PID_PATH_NAME ]; then\n            nohup java -jar $PATH_TO_JAR /tmp 2>> /dev/null >> /dev/null &\n                        echo $! > $PID_PATH_NAME\n            echo \"$SERVICE_NAME started ...\"\n        else\n            echo \"$SERVICE_NAME is already running ...\"\n        fi\n    ;;\n    stop)\n        if [ -f $PID_PATH_NAME ]; then\n            PID=$(cat $PID_PATH_NAME);\n            echo \"$SERVICE_NAME stoping ...\"\n            kill $PID;\n            echo \"$SERVICE_NAME stopped ...\"\n            rm $PID_PATH_NAME\n        else\n            echo \"$SERVICE_NAME is not running ...\"\n        fi\n    ;;\n    restart)\n        if [ -f $PID_PATH_NAME ]; then\n            PID=$(cat $PID_PATH_NAME);\n            echo \"$SERVICE_NAME stopping ...\";\n            kill $PID;\n            echo \"$SERVICE_NAME stopped ...\";\n            rm $PID_PATH_NAME\n            echo \"$SERVICE_NAME starting ...\"\n            nohup java -jar $PATH_TO_JAR /tmp 2>> /dev/null >> /dev/null &\n                        echo $! > $PID_PATH_NAME\n            echo \"$SERVICE_NAME started ...\"\n        else\n            echo \"$SERVICE_NAME is not running ...\"\n        fi\n    ;;\nesac",
+        "encoding": "plain",
+        "mode": "000644",
+        "owner": "root",
+        "group": "root"
+       },
+       "/etc/init.d/node.sh": {
+        "content": "#!/bin/bash\n#chkconfig: 2345 80 90\n#description:start node\nSERVICE_NAME=node\nPATH_TO_NODE=/var/www/server/\nPID_PATH_NAME=/var/run/$SERVICE_NAME.pid\ncase $1 in\n    start)\n        echo \"Starting $SERVICE_NAME ...\"\n        if [ ! -f $PID_PATH_NAME ]; then\n            curl -sL https://raw.githubusercontent.com/nvm-sh/nvm/v0.34.0/install.sh| bash\n            export NVM_DIR=\"$HOME/.nvm\"\n            [ -s \"$NVM_DIR/nvm.sh\" ] && \\. \"$NVM_DIR/nvm.sh\"\n            nvm install v17\n            cd $PATH_TO_NODE\n            npm install && npm run start\n            echo \"$SERVICE_NAME started ...\"\n        else\n            echo \"$SERVICE_NAME is already running ...\"\n        fi\n    ;;\n    stop)\n        if [ -f $PID_PATH_NAME ]; then\n            PID=$(cat $PID_PATH_NAME);\n            echo \"$SERVICE_NAME stoping ...\"\n            kill $PID;\n            echo \"$SERVICE_NAME stopped ...\"\n            rm $PID_PATH_NAME\n        else\n            echo \"$SERVICE_NAME is not running ...\"\n        fi\n    ;;\n    restart)\n        if [ -f $PID_PATH_NAME ]; then\n            PID=$(cat $PID_PATH_NAME);\n            echo \"$SERVICE_NAME stopping ...\";\n            kill $PID;\n            echo \"$SERVICE_NAME stopped ...\";\n            rm $PID_PATH_NAME\n            echo \"$SERVICE_NAME starting ...\"\n            curl -sL https://raw.githubusercontent.com/nvm-sh/nvm/v0.34.0/install.sh| bash\n            export NVM_DIR=\"$HOME/.nvm\"\n            [ -s \"$NVM_DIR/nvm.sh\" ] && \\. \"$NVM_DIR/nvm.sh\"\n            nvm install v17\n            cd $PATH_TO_NODE\n            npm install && npm run start\n            echo \"$SERVICE_NAME started ...\"\n        else\n            echo \"$SERVICE_NAME is not running ...\"\n        fi\n    ;;\nesac",
+        "encoding": "plain",
+        "mode": "000644",
+        "owner": "root",
+        "group": "root"
+       }
+      }
+     }
+    }
+   }
+  },
+  "ec2ClusterStackworkshopEC2Alb5012A70F": {
+   "Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
+   "Properties": {
+    "LoadBalancerAttributes": [
+     {
+      "Key": "deletion_protection.enabled",
+      "Value": "false"
+     }
+    ],
+    "Scheme": "internet-facing",
+    "SecurityGroups": [
+     {
+      "Fn::GetAtt": [
+       "ec2ClusterStackworkshopEC2AlbSecurityGroup8E79E822",
+       "GroupId"
+      ]
+     }
+    ],
+    "Subnets": [
+     {
+      "Ref": "workshopVpcpublicSubnet1SubnetFAC60711"
+     },
+     {
+      "Ref": "workshopVpcpublicSubnet2Subnet2D84D2A0"
+     }
+    ],
+    "Type": "application"
+   },
+   "DependsOn": [
+    "workshopVpcpublicSubnet1DefaultRoute594B4E87",
+    "workshopVpcpublicSubnet1RouteTableAssociation3E94745D",
+    "workshopVpcpublicSubnet2DefaultRouteEB78228B",
+    "workshopVpcpublicSubnet2RouteTableAssociationF104557D"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/ec2ClusterStack/workshopEC2Alb/Resource"
+   }
+  },
+  "ec2ClusterStackworkshopEC2AlbSecurityGroup8E79E822": {
+   "Type": "AWS::EC2::SecurityGroup",
+   "Properties": {
+    "GroupDescription": "Automatically created Security Group for ELB CLWorkshopEC2AndEKSec2ClusterStackworkshopEC2Alb07F309D3",
+    "SecurityGroupIngress": [
+     {
+      "CidrIp": "0.0.0.0/0",
+      "Description": "Allow from anyone on port 80",
+      "FromPort": 80,
+      "IpProtocol": "tcp",
+      "ToPort": 80
+     }
+    ],
+    "VpcId": {
+     "Ref": "workshopVpcB999C4C5"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/ec2ClusterStack/workshopEC2Alb/SecurityGroup/Resource"
+   }
+  },
+  "ec2ClusterStackworkshopEC2AlbSecurityGrouptoCLWorkshopEC2AndEKSec2ClusterStackworkshopASGInstanceSecurityGroup9E4DD76580385CAEE1": {
+   "Type": "AWS::EC2::SecurityGroupEgress",
+   "Properties": {
+    "GroupId": {
+     "Fn::GetAtt": [
+      "ec2ClusterStackworkshopEC2AlbSecurityGroup8E79E822",
+      "GroupId"
+     ]
+    },
+    "IpProtocol": "tcp",
+    "Description": "Load balancer to target",
+    "DestinationSecurityGroupId": {
+     "Fn::GetAtt": [
+      "ec2ClusterStackworkshopASGInstanceSecurityGroup2CAEDB24",
+      "GroupId"
+     ]
+    },
+    "FromPort": 80,
+    "ToPort": 80
+   },
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/ec2ClusterStack/workshopEC2Alb/SecurityGroup/to CLWorkshopEC2AndEKSec2ClusterStackworkshopASGInstanceSecurityGroup9E4DD765:80"
+   }
+  },
+  "ec2ClusterStackworkshopEC2AlbListenerEC222E2DA33": {
+   "Type": "AWS::ElasticLoadBalancingV2::Listener",
+   "Properties": {
+    "DefaultActions": [
+     {
+      "TargetGroupArn": {
+       "Ref": "ec2ClusterStackworkshopEC2AlbListenerEC2ApplicationFleetEC2Group50446707"
+      },
+      "Type": "forward"
+     }
+    ],
+    "LoadBalancerArn": {
+     "Ref": "ec2ClusterStackworkshopEC2Alb5012A70F"
+    },
+    "Port": 80,
+    "Protocol": "HTTP"
+   },
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/ec2ClusterStack/workshopEC2Alb/ListenerEC2/Resource"
+   }
+  },
+  "ec2ClusterStackworkshopEC2AlbListenerEC2ApplicationFleetEC2Group50446707": {
+   "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
+   "Properties": {
+    "Port": 80,
+    "Protocol": "HTTP",
+    "TargetGroupAttributes": [
+     {
+      "Key": "stickiness.enabled",
+      "Value": "false"
+     }
+    ],
+    "TargetType": "instance",
+    "VpcId": {
+     "Ref": "workshopVpcB999C4C5"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/ec2ClusterStack/workshopEC2Alb/ListenerEC2/ApplicationFleetEC2Group/Resource"
+   }
+  },
+  "eksClusterStackEKSWorkshopAdminRole42DB1E3C": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "AWS": {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":iam::",
+           {
+            "Ref": "AWS::AccountId"
+           },
+           ":root"
+          ]
+         ]
+        }
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/eksClusterStack/EKSWorkshopAdminRole/Resource"
+   }
+  },
+  "eksClusterStackKubectlv24Layer80331900": {
+   "Type": "AWS::Lambda::LayerVersion",
+   "Properties": {
+    "Content": {
+     "S3Bucket": {
+      "Fn::Sub": "aws-gcr-solutions-${AWS::Region}"
+     },
+     "S3Key": "log-hub-workshop/v2.0.2/c475180f5b1bbabac165414da13a9b843b111cd3b6d5fae9c954c006640c4064"
+    },
+    "Description": "/opt/kubectl/kubectl 1.24; /opt/helm/helm 3.9",
+    "LicenseInfo": "Apache-2.0"
+   },
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/eksClusterStack/Kubectlv24Layer/Resource",
+    "aws:asset:path": "asset.c475180f5b1bbabac165414da13a9b843b111cd3b6d5fae9c954c006640c4064.zip",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Content"
+   }
+  },
+  "eksClusterStackEKSClusterRole5B2DEA5C": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "eks.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/AmazonEKSClusterPolicy"
+       ]
+      ]
+     }
+    ]
+   },
+   "DependsOn": [
+    "workshopVpcIGW3C43A0CD",
+    "workshopVpcprivateSubnet1DefaultRouteF1D49A73",
+    "workshopVpcprivateSubnet1RouteTable253960B4",
+    "workshopVpcprivateSubnet1RouteTableAssociation822CDFC6",
+    "workshopVpcprivateSubnet1Subnet230C4CDE",
+    "workshopVpcprivateSubnet2DefaultRoute90DDB5CC",
+    "workshopVpcprivateSubnet2RouteTable46E11A04",
+    "workshopVpcprivateSubnet2RouteTableAssociation2E2B65E5",
+    "workshopVpcprivateSubnet2SubnetF66C2114",
+    "workshopVpcpublicSubnet1DefaultRoute594B4E87",
+    "workshopVpcpublicSubnet1EIPC03FB332",
+    "workshopVpcpublicSubnet1NATGateway1270202C",
+    "workshopVpcpublicSubnet1RouteTable1C40FAF8",
+    "workshopVpcpublicSubnet1RouteTableAssociation3E94745D",
+    "workshopVpcpublicSubnet1SubnetFAC60711",
+    "workshopVpcpublicSubnet2DefaultRouteEB78228B",
+    "workshopVpcpublicSubnet2RouteTableAEACF0E2",
+    "workshopVpcpublicSubnet2RouteTableAssociationF104557D",
+    "workshopVpcpublicSubnet2Subnet2D84D2A0",
+    "workshopVpcB999C4C5",
+    "workshopVpcVPCGWE9443FB8"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/eksClusterStack/EKSCluster/Role/Resource"
+   }
+  },
+  "eksClusterStackEKSClusterControlPlaneSecurityGroupB2E3CF2B": {
+   "Type": "AWS::EC2::SecurityGroup",
+   "Properties": {
+    "GroupDescription": "EKS Control Plane Security Group",
+    "SecurityGroupEgress": [
+     {
+      "CidrIp": "0.0.0.0/0",
+      "Description": "Allow all outbound traffic by default",
+      "IpProtocol": "-1"
+     }
+    ],
+    "VpcId": {
+     "Ref": "workshopVpcB999C4C5"
+    }
+   },
+   "DependsOn": [
+    "workshopVpcIGW3C43A0CD",
+    "workshopVpcprivateSubnet1DefaultRouteF1D49A73",
+    "workshopVpcprivateSubnet1RouteTable253960B4",
+    "workshopVpcprivateSubnet1RouteTableAssociation822CDFC6",
+    "workshopVpcprivateSubnet1Subnet230C4CDE",
+    "workshopVpcprivateSubnet2DefaultRoute90DDB5CC",
+    "workshopVpcprivateSubnet2RouteTable46E11A04",
+    "workshopVpcprivateSubnet2RouteTableAssociation2E2B65E5",
+    "workshopVpcprivateSubnet2SubnetF66C2114",
+    "workshopVpcpublicSubnet1DefaultRoute594B4E87",
+    "workshopVpcpublicSubnet1EIPC03FB332",
+    "workshopVpcpublicSubnet1NATGateway1270202C",
+    "workshopVpcpublicSubnet1RouteTable1C40FAF8",
+    "workshopVpcpublicSubnet1RouteTableAssociation3E94745D",
+    "workshopVpcpublicSubnet1SubnetFAC60711",
+    "workshopVpcpublicSubnet2DefaultRouteEB78228B",
+    "workshopVpcpublicSubnet2RouteTableAEACF0E2",
+    "workshopVpcpublicSubnet2RouteTableAssociationF104557D",
+    "workshopVpcpublicSubnet2Subnet2D84D2A0",
+    "workshopVpcB999C4C5",
+    "workshopVpcVPCGWE9443FB8"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/eksClusterStack/EKSCluster/ControlPlaneSecurityGroup/Resource"
+   }
+  },
+  "eksClusterStackEKSClusterCreationRoleD56143CC": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "AWS": {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":iam::",
+           {
+            "Ref": "AWS::AccountId"
+           },
+           ":root"
+          ]
+         ]
+        }
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    }
+   },
+   "DependsOn": [
+    "workshopVpcIGW3C43A0CD",
+    "workshopVpcprivateSubnet1DefaultRouteF1D49A73",
+    "workshopVpcprivateSubnet1RouteTable253960B4",
+    "workshopVpcprivateSubnet1RouteTableAssociation822CDFC6",
+    "workshopVpcprivateSubnet1Subnet230C4CDE",
+    "workshopVpcprivateSubnet2DefaultRoute90DDB5CC",
+    "workshopVpcprivateSubnet2RouteTable46E11A04",
+    "workshopVpcprivateSubnet2RouteTableAssociation2E2B65E5",
+    "workshopVpcprivateSubnet2SubnetF66C2114",
+    "workshopVpcpublicSubnet1DefaultRoute594B4E87",
+    "workshopVpcpublicSubnet1EIPC03FB332",
+    "workshopVpcpublicSubnet1NATGateway1270202C",
+    "workshopVpcpublicSubnet1RouteTable1C40FAF8",
+    "workshopVpcpublicSubnet1RouteTableAssociation3E94745D",
+    "workshopVpcpublicSubnet1SubnetFAC60711",
+    "workshopVpcpublicSubnet2DefaultRouteEB78228B",
+    "workshopVpcpublicSubnet2RouteTableAEACF0E2",
+    "workshopVpcpublicSubnet2RouteTableAssociationF104557D",
+    "workshopVpcpublicSubnet2Subnet2D84D2A0",
+    "workshopVpcB999C4C5",
+    "workshopVpcVPCGWE9443FB8"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/eksClusterStack/EKSCluster/Resource/CreationRole/Resource"
+   }
+  },
+  "eksClusterStackEKSClusterCreationRoleDefaultPolicy4F23A639": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": "iam:PassRole",
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::GetAtt": [
+         "eksClusterStackEKSClusterRole5B2DEA5C",
+         "Arn"
+        ]
+       }
+      },
+      {
+       "Action": [
+        "eks:CreateCluster",
+        "eks:DescribeCluster",
+        "eks:DescribeUpdate",
+        "eks:DeleteCluster",
+        "eks:UpdateClusterVersion",
+        "eks:UpdateClusterConfig",
+        "eks:CreateFargateProfile",
+        "eks:TagResource",
+        "eks:UntagResource"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":eks:",
+           {
+            "Ref": "AWS::Region"
+           },
+           ":",
+           {
+            "Ref": "AWS::AccountId"
+           },
+           ":cluster/Workshop-Cluster"
+          ]
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           "arn:",
+           {
+            "Ref": "AWS::Partition"
+           },
+           ":eks:",
+           {
+            "Ref": "AWS::Region"
+           },
+           ":",
+           {
+            "Ref": "AWS::AccountId"
+           },
+           ":cluster/Workshop-Cluster/*"
+          ]
+         ]
+        }
+       ]
+      },
+      {
+       "Action": [
+        "eks:DescribeFargateProfile",
+        "eks:DeleteFargateProfile"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          "arn:",
+          {
+           "Ref": "AWS::Partition"
+          },
+          ":eks:",
+          {
+           "Ref": "AWS::Region"
+          },
+          ":",
+          {
+           "Ref": "AWS::AccountId"
+          },
+          ":fargateprofile/Workshop-Cluster/*"
+         ]
+        ]
+       }
+      },
+      {
+       "Action": [
+        "iam:GetRole",
+        "iam:listAttachedRolePolicies"
+       ],
+       "Effect": "Allow",
+       "Resource": "*"
+      },
+      {
+       "Action": "iam:CreateServiceLinkedRole",
+       "Effect": "Allow",
+       "Resource": "*"
+      },
+      {
+       "Action": [
+        "ec2:DescribeInstances",
+        "ec2:DescribeNetworkInterfaces",
+        "ec2:DescribeSecurityGroups",
+        "ec2:DescribeSubnets",
+        "ec2:DescribeRouteTables",
+        "ec2:DescribeDhcpOptions",
+        "ec2:DescribeVpcs"
+       ],
+       "Effect": "Allow",
+       "Resource": "*"
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "eksClusterStackEKSClusterCreationRoleDefaultPolicy4F23A639",
+    "Roles": [
+     {
+      "Ref": "eksClusterStackEKSClusterCreationRoleD56143CC"
+     }
+    ]
+   },
+   "DependsOn": [
+    "workshopVpcIGW3C43A0CD",
+    "workshopVpcprivateSubnet1DefaultRouteF1D49A73",
+    "workshopVpcprivateSubnet1RouteTable253960B4",
+    "workshopVpcprivateSubnet1RouteTableAssociation822CDFC6",
+    "workshopVpcprivateSubnet1Subnet230C4CDE",
+    "workshopVpcprivateSubnet2DefaultRoute90DDB5CC",
+    "workshopVpcprivateSubnet2RouteTable46E11A04",
+    "workshopVpcprivateSubnet2RouteTableAssociation2E2B65E5",
+    "workshopVpcprivateSubnet2SubnetF66C2114",
+    "workshopVpcpublicSubnet1DefaultRoute594B4E87",
+    "workshopVpcpublicSubnet1EIPC03FB332",
+    "workshopVpcpublicSubnet1NATGateway1270202C",
+    "workshopVpcpublicSubnet1RouteTable1C40FAF8",
+    "workshopVpcpublicSubnet1RouteTableAssociation3E94745D",
+    "workshopVpcpublicSubnet1SubnetFAC60711",
+    "workshopVpcpublicSubnet2DefaultRouteEB78228B",
+    "workshopVpcpublicSubnet2RouteTableAEACF0E2",
+    "workshopVpcpublicSubnet2RouteTableAssociationF104557D",
+    "workshopVpcpublicSubnet2Subnet2D84D2A0",
+    "workshopVpcB999C4C5",
+    "workshopVpcVPCGWE9443FB8"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/eksClusterStack/EKSCluster/Resource/CreationRole/DefaultPolicy/Resource"
+   }
+  },
+  "eksClusterStackEKSClusterED4C7603": {
+   "Type": "Custom::AWSCDK-EKS-Cluster",
+   "Properties": {
+    "ServiceToken": {
+     "Fn::GetAtt": [
+      "awscdkawseksClusterResourceProviderNestedStackawscdkawseksClusterResourceProviderNestedStackResource9827C454",
+      "Outputs.CLWorkshopEC2AndEKSawscdkawseksClusterResourceProviderframeworkonEventB831EBB3Arn"
+     ]
+    },
+    "Config": {
+     "name": "Workshop-Cluster",
+     "version": "1.24",
+     "roleArn": {
+      "Fn::GetAtt": [
+       "eksClusterStackEKSClusterRole5B2DEA5C",
+       "Arn"
+      ]
+     },
+     "resourcesVpcConfig": {
+      "subnetIds": [
+       {
+        "Ref": "workshopVpcprivateSubnet1Subnet230C4CDE"
+       },
+       {
+        "Ref": "workshopVpcprivateSubnet2SubnetF66C2114"
+       }
+      ],
+      "securityGroupIds": [
+       {
+        "Fn::GetAtt": [
+         "eksClusterStackEKSClusterControlPlaneSecurityGroupB2E3CF2B",
+         "GroupId"
+        ]
+       }
+      ],
+      "endpointPublicAccess": true,
+      "endpointPrivateAccess": false
+     }
+    },
+    "AssumeRoleArn": {
+     "Fn::GetAtt": [
+      "eksClusterStackEKSClusterCreationRoleD56143CC",
+      "Arn"
+     ]
+    },
+    "AttributesRevision": 2
+   },
+   "DependsOn": [
+    "eksClusterStackEKSClusterCreationRoleDefaultPolicy4F23A639",
+    "eksClusterStackEKSClusterCreationRoleD56143CC",
+    "workshopVpcIGW3C43A0CD",
+    "workshopVpcprivateSubnet1DefaultRouteF1D49A73",
+    "workshopVpcprivateSubnet1RouteTable253960B4",
+    "workshopVpcprivateSubnet1RouteTableAssociation822CDFC6",
+    "workshopVpcprivateSubnet1Subnet230C4CDE",
+    "workshopVpcprivateSubnet2DefaultRoute90DDB5CC",
+    "workshopVpcprivateSubnet2RouteTable46E11A04",
+    "workshopVpcprivateSubnet2RouteTableAssociation2E2B65E5",
+    "workshopVpcprivateSubnet2SubnetF66C2114",
+    "workshopVpcpublicSubnet1DefaultRoute594B4E87",
+    "workshopVpcpublicSubnet1EIPC03FB332",
+    "workshopVpcpublicSubnet1NATGateway1270202C",
+    "workshopVpcpublicSubnet1RouteTable1C40FAF8",
+    "workshopVpcpublicSubnet1RouteTableAssociation3E94745D",
+    "workshopVpcpublicSubnet1SubnetFAC60711",
+    "workshopVpcpublicSubnet2DefaultRouteEB78228B",
+    "workshopVpcpublicSubnet2RouteTableAEACF0E2",
+    "workshopVpcpublicSubnet2RouteTableAssociationF104557D",
+    "workshopVpcpublicSubnet2Subnet2D84D2A0",
+    "workshopVpcB999C4C5",
+    "workshopVpcVPCGWE9443FB8"
+   ],
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/eksClusterStack/EKSCluster/Resource/Resource/Default"
+   }
+  },
+  "eksClusterStackEKSClusterKubectlReadyBarrier58F05433": {
+   "Type": "AWS::SSM::Parameter",
+   "Properties": {
+    "Type": "String",
+    "Value": "aws:cdk:eks:kubectl-ready"
+   },
+   "DependsOn": [
+    "eksClusterStackEKSClusterCreationRoleDefaultPolicy4F23A639",
+    "eksClusterStackEKSClusterCreationRoleD56143CC",
+    "eksClusterStackEKSClusterED4C7603",
+    "workshopVpcIGW3C43A0CD",
+    "workshopVpcprivateSubnet1DefaultRouteF1D49A73",
+    "workshopVpcprivateSubnet1RouteTable253960B4",
+    "workshopVpcprivateSubnet1RouteTableAssociation822CDFC6",
+    "workshopVpcprivateSubnet1Subnet230C4CDE",
+    "workshopVpcprivateSubnet2DefaultRoute90DDB5CC",
+    "workshopVpcprivateSubnet2RouteTable46E11A04",
+    "workshopVpcprivateSubnet2RouteTableAssociation2E2B65E5",
+    "workshopVpcprivateSubnet2SubnetF66C2114",
+    "workshopVpcpublicSubnet1DefaultRoute594B4E87",
+    "workshopVpcpublicSubnet1EIPC03FB332",
+    "workshopVpcpublicSubnet1NATGateway1270202C",
+    "workshopVpcpublicSubnet1RouteTable1C40FAF8",
+    "workshopVpcpublicSubnet1RouteTableAssociation3E94745D",
+    "workshopVpcpublicSubnet1SubnetFAC60711",
+    "workshopVpcpublicSubnet2DefaultRouteEB78228B",
+    "workshopVpcpublicSubnet2RouteTableAEACF0E2",
+    "workshopVpcpublicSubnet2RouteTableAssociationF104557D",
+    "workshopVpcpublicSubnet2Subnet2D84D2A0",
+    "workshopVpcB999C4C5",
+    "workshopVpcVPCGWE9443FB8"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/eksClusterStack/EKSCluster/KubectlReadyBarrier"
+   }
+  },
+  "eksClusterStackEKSClusterAwsAuthmanifestAC75C083": {
+   "Type": "Custom::AWSCDK-EKS-KubernetesResource",
+   "Properties": {
+    "ServiceToken": {
+     "Fn::GetAtt": [
+      "awscdkawseksKubectlProviderNestedStackawscdkawseksKubectlProviderNestedStackResourceA7AEBA6B",
+      "Outputs.CLWorkshopEC2AndEKSawscdkawseksKubectlProviderframeworkonEvent444F6F57Arn"
+     ]
+    },
+    "Manifest": {
+     "Fn::Join": [
+      "",
+      [
+       "[{\"apiVersion\":\"v1\",\"kind\":\"ConfigMap\",\"metadata\":{\"name\":\"aws-auth\",\"namespace\":\"kube-system\",\"labels\":{\"aws.cdk.eks/prune-c82507bb4091668282a673c95a884e27dd1a98d1d8\":\"\"}},\"data\":{\"mapRoles\":\"[{\\\"rolearn\\\":\\\"",
+       {
+        "Fn::GetAtt": [
+         "eksClusterStackEKSWorkshopAdminRole42DB1E3C",
+         "Arn"
+        ]
+       },
+       "\\\",\\\"username\\\":\\\"",
+       {
+        "Fn::GetAtt": [
+         "eksClusterStackEKSWorkshopAdminRole42DB1E3C",
+         "Arn"
+        ]
+       },
+       "\\\",\\\"groups\\\":[\\\"system:masters\\\"]},{\\\"rolearn\\\":\\\"",
+       {
+        "Fn::GetAtt": [
+         "eksClusterStackEKSClusterNodegroupDefaultCapacityNodeGroupRole0AB204DE",
+         "Arn"
+        ]
+       },
+       "\\\",\\\"username\\\":\\\"system:node:{{EC2PrivateDNSName}}\\\",\\\"groups\\\":[\\\"system:bootstrappers\\\",\\\"system:nodes\\\"]}]\",\"mapUsers\":\"[]\",\"mapAccounts\":\"[]\"}}]"
+      ]
+     ]
+    },
+    "ClusterName": {
+     "Ref": "eksClusterStackEKSClusterED4C7603"
+    },
+    "RoleArn": {
+     "Fn::GetAtt": [
+      "eksClusterStackEKSClusterCreationRoleD56143CC",
+      "Arn"
+     ]
+    },
+    "PruneLabel": "aws.cdk.eks/prune-c82507bb4091668282a673c95a884e27dd1a98d1d8",
+    "Overwrite": true
+   },
+   "DependsOn": [
+    "eksClusterStackEKSClusterKubectlReadyBarrier58F05433",
+    "workshopVpcIGW3C43A0CD",
+    "workshopVpcprivateSubnet1DefaultRouteF1D49A73",
+    "workshopVpcprivateSubnet1RouteTable253960B4",
+    "workshopVpcprivateSubnet1RouteTableAssociation822CDFC6",
+    "workshopVpcprivateSubnet1Subnet230C4CDE",
+    "workshopVpcprivateSubnet2DefaultRoute90DDB5CC",
+    "workshopVpcprivateSubnet2RouteTable46E11A04",
+    "workshopVpcprivateSubnet2RouteTableAssociation2E2B65E5",
+    "workshopVpcprivateSubnet2SubnetF66C2114",
+    "workshopVpcpublicSubnet1DefaultRoute594B4E87",
+    "workshopVpcpublicSubnet1EIPC03FB332",
+    "workshopVpcpublicSubnet1NATGateway1270202C",
+    "workshopVpcpublicSubnet1RouteTable1C40FAF8",
+    "workshopVpcpublicSubnet1RouteTableAssociation3E94745D",
+    "workshopVpcpublicSubnet1SubnetFAC60711",
+    "workshopVpcpublicSubnet2DefaultRouteEB78228B",
+    "workshopVpcpublicSubnet2RouteTableAEACF0E2",
+    "workshopVpcpublicSubnet2RouteTableAssociationF104557D",
+    "workshopVpcpublicSubnet2Subnet2D84D2A0",
+    "workshopVpcB999C4C5",
+    "workshopVpcVPCGWE9443FB8"
+   ],
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/eksClusterStack/EKSCluster/AwsAuth/manifest/Resource/Default"
+   }
+  },
+  "eksClusterStackEKSClusterOpenIdConnectProvider72D167A8": {
+   "Type": "Custom::AWSCDKOpenIdConnectProvider",
+   "Properties": {
+    "ServiceToken": {
+     "Fn::GetAtt": [
+      "CustomAWSCDKOpenIdConnectProviderCustomResourceProviderHandlerF2C543E0",
+      "Arn"
+     ]
+    },
+    "ClientIDList": [
+     "sts.amazonaws.com"
+    ],
+    "Url": {
+     "Fn::GetAtt": [
+      "eksClusterStackEKSClusterED4C7603",
+      "OpenIdConnectIssuerUrl"
+     ]
+    },
+    "CodeHash": "086f508ae8b4a8d34bf4cc41b0368212cefb106c92eb809b2e000c60d35a8f33"
+   },
+   "DependsOn": [
+    "workshopVpcIGW3C43A0CD",
+    "workshopVpcprivateSubnet1DefaultRouteF1D49A73",
+    "workshopVpcprivateSubnet1RouteTable253960B4",
+    "workshopVpcprivateSubnet1RouteTableAssociation822CDFC6",
+    "workshopVpcprivateSubnet1Subnet230C4CDE",
+    "workshopVpcprivateSubnet2DefaultRoute90DDB5CC",
+    "workshopVpcprivateSubnet2RouteTable46E11A04",
+    "workshopVpcprivateSubnet2RouteTableAssociation2E2B65E5",
+    "workshopVpcprivateSubnet2SubnetF66C2114",
+    "workshopVpcpublicSubnet1DefaultRoute594B4E87",
+    "workshopVpcpublicSubnet1EIPC03FB332",
+    "workshopVpcpublicSubnet1NATGateway1270202C",
+    "workshopVpcpublicSubnet1RouteTable1C40FAF8",
+    "workshopVpcpublicSubnet1RouteTableAssociation3E94745D",
+    "workshopVpcpublicSubnet1SubnetFAC60711",
+    "workshopVpcpublicSubnet2DefaultRouteEB78228B",
+    "workshopVpcpublicSubnet2RouteTableAEACF0E2",
+    "workshopVpcpublicSubnet2RouteTableAssociationF104557D",
+    "workshopVpcpublicSubnet2Subnet2D84D2A0",
+    "workshopVpcB999C4C5",
+    "workshopVpcVPCGWE9443FB8"
+   ],
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/eksClusterStack/EKSCluster/OpenIdConnectProvider/Resource/Default"
+   }
+  },
+  "eksClusterStackEKSClusterNodegroupDefaultCapacityNodeGroupRole0AB204DE": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "ec2.amazonaws.com.cn"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/AmazonEKSWorkerNodePolicy"
+       ]
+      ]
+     },
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/AmazonEKS_CNI_Policy"
+       ]
+      ]
+     },
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+       ]
+      ]
+     },
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/SecretsManagerReadWrite"
+       ]
+      ]
+     },
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/AmazonSSMManagedInstanceCore"
+       ]
+      ]
+     }
+    ]
+   },
+   "DependsOn": [
+    "workshopVpcIGW3C43A0CD",
+    "workshopVpcprivateSubnet1DefaultRouteF1D49A73",
+    "workshopVpcprivateSubnet1RouteTable253960B4",
+    "workshopVpcprivateSubnet1RouteTableAssociation822CDFC6",
+    "workshopVpcprivateSubnet1Subnet230C4CDE",
+    "workshopVpcprivateSubnet2DefaultRoute90DDB5CC",
+    "workshopVpcprivateSubnet2RouteTable46E11A04",
+    "workshopVpcprivateSubnet2RouteTableAssociation2E2B65E5",
+    "workshopVpcprivateSubnet2SubnetF66C2114",
+    "workshopVpcpublicSubnet1DefaultRoute594B4E87",
+    "workshopVpcpublicSubnet1EIPC03FB332",
+    "workshopVpcpublicSubnet1NATGateway1270202C",
+    "workshopVpcpublicSubnet1RouteTable1C40FAF8",
+    "workshopVpcpublicSubnet1RouteTableAssociation3E94745D",
+    "workshopVpcpublicSubnet1SubnetFAC60711",
+    "workshopVpcpublicSubnet2DefaultRouteEB78228B",
+    "workshopVpcpublicSubnet2RouteTableAEACF0E2",
+    "workshopVpcpublicSubnet2RouteTableAssociationF104557D",
+    "workshopVpcpublicSubnet2Subnet2D84D2A0",
+    "workshopVpcB999C4C5",
+    "workshopVpcVPCGWE9443FB8"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/eksClusterStack/EKSCluster/NodegroupDefaultCapacity/NodeGroupRole/Resource"
+   }
+  },
+  "eksClusterStackEKSClusterNodegroupDefaultCapacityA26580AC": {
+   "Type": "AWS::EKS::Nodegroup",
+   "Properties": {
+    "ClusterName": {
+     "Ref": "eksClusterStackEKSClusterED4C7603"
+    },
+    "NodeRole": {
+     "Fn::GetAtt": [
+      "eksClusterStackEKSClusterNodegroupDefaultCapacityNodeGroupRole0AB204DE",
+      "Arn"
+     ]
+    },
+    "Subnets": [
+     {
+      "Ref": "workshopVpcprivateSubnet1Subnet230C4CDE"
+     },
+     {
+      "Ref": "workshopVpcprivateSubnet2SubnetF66C2114"
+     }
+    ],
+    "AmiType": "AL2_x86_64",
+    "ForceUpdateEnabled": true,
+    "InstanceTypes": [
+     "m5.large"
+    ],
+    "ScalingConfig": {
+     "DesiredSize": 1,
+     "MaxSize": 1,
+     "MinSize": 1
+    }
+   },
+   "DependsOn": [
+    "workshopVpcIGW3C43A0CD",
+    "workshopVpcprivateSubnet1DefaultRouteF1D49A73",
+    "workshopVpcprivateSubnet1RouteTable253960B4",
+    "workshopVpcprivateSubnet1RouteTableAssociation822CDFC6",
+    "workshopVpcprivateSubnet1Subnet230C4CDE",
+    "workshopVpcprivateSubnet2DefaultRoute90DDB5CC",
+    "workshopVpcprivateSubnet2RouteTable46E11A04",
+    "workshopVpcprivateSubnet2RouteTableAssociation2E2B65E5",
+    "workshopVpcprivateSubnet2SubnetF66C2114",
+    "workshopVpcpublicSubnet1DefaultRoute594B4E87",
+    "workshopVpcpublicSubnet1EIPC03FB332",
+    "workshopVpcpublicSubnet1NATGateway1270202C",
+    "workshopVpcpublicSubnet1RouteTable1C40FAF8",
+    "workshopVpcpublicSubnet1RouteTableAssociation3E94745D",
+    "workshopVpcpublicSubnet1SubnetFAC60711",
+    "workshopVpcpublicSubnet2DefaultRouteEB78228B",
+    "workshopVpcpublicSubnet2RouteTableAEACF0E2",
+    "workshopVpcpublicSubnet2RouteTableAssociationF104557D",
+    "workshopVpcpublicSubnet2Subnet2D84D2A0",
+    "workshopVpcB999C4C5",
+    "workshopVpcVPCGWE9443FB8"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/eksClusterStack/EKSCluster/NodegroupDefaultCapacity/Resource"
+   }
+  },
+  "eksClusterStackEKSClustermanifestjavaF8BF6982": {
+   "Type": "Custom::AWSCDK-EKS-KubernetesResource",
+   "Properties": {
+    "ServiceToken": {
+     "Fn::GetAtt": [
+      "awscdkawseksKubectlProviderNestedStackawscdkawseksKubectlProviderNestedStackResourceA7AEBA6B",
+      "Outputs.CLWorkshopEC2AndEKSawscdkawseksKubectlProviderframeworkonEvent444F6F57Arn"
+     ]
+    },
+    "Manifest": "[{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"name\":\"java-svc\",\"labels\":{\"aws.cdk.eks/prune-c806f5f2f5802e49b959a118e58b70429308ad90b2\":\"\"}},\"spec\":{\"type\":\"NodePort\",\"selector\":{\"app\":\"spring-boot\"},\"ports\":[{\"protocol\":\"TCP\",\"port\":80,\"targetPort\":8080}]}},{\"apiVersion\":\"apps/v1\",\"kind\":\"Deployment\",\"metadata\":{\"name\":\"spring-boot\",\"labels\":{\"aws.cdk.eks/prune-c806f5f2f5802e49b959a118e58b70429308ad90b2\":\"\"}},\"spec\":{\"replicas\":1,\"selector\":{\"matchLabels\":{\"app\":\"spring-boot\"}},\"template\":{\"metadata\":{\"labels\":{\"app\":\"spring-boot\"}},\"spec\":{\"containers\":[{\"name\":\"spring-boot\",\"image\":\"public.ecr.aws/aws-gcr-solutions/centralized-logging-with-opensearch-workshop/java:v1.1.0\",\"resources\":{\"limits\":{\"cpu\":\"200m\",\"memory\":\"512Mi\"}},\"ports\":[{\"containerPort\":8080,\"protocol\":\"TCP\"}]}]}}}}]",
+    "ClusterName": {
+     "Ref": "eksClusterStackEKSClusterED4C7603"
+    },
+    "RoleArn": {
+     "Fn::GetAtt": [
+      "eksClusterStackEKSClusterCreationRoleD56143CC",
+      "Arn"
+     ]
+    },
+    "PruneLabel": "aws.cdk.eks/prune-c806f5f2f5802e49b959a118e58b70429308ad90b2"
+   },
+   "DependsOn": [
+    "eksClusterStackEKSClusterKubectlReadyBarrier58F05433",
+    "workshopVpcIGW3C43A0CD",
+    "workshopVpcprivateSubnet1DefaultRouteF1D49A73",
+    "workshopVpcprivateSubnet1RouteTable253960B4",
+    "workshopVpcprivateSubnet1RouteTableAssociation822CDFC6",
+    "workshopVpcprivateSubnet1Subnet230C4CDE",
+    "workshopVpcprivateSubnet2DefaultRoute90DDB5CC",
+    "workshopVpcprivateSubnet2RouteTable46E11A04",
+    "workshopVpcprivateSubnet2RouteTableAssociation2E2B65E5",
+    "workshopVpcprivateSubnet2SubnetF66C2114",
+    "workshopVpcpublicSubnet1DefaultRoute594B4E87",
+    "workshopVpcpublicSubnet1EIPC03FB332",
+    "workshopVpcpublicSubnet1NATGateway1270202C",
+    "workshopVpcpublicSubnet1RouteTable1C40FAF8",
+    "workshopVpcpublicSubnet1RouteTableAssociation3E94745D",
+    "workshopVpcpublicSubnet1SubnetFAC60711",
+    "workshopVpcpublicSubnet2DefaultRouteEB78228B",
+    "workshopVpcpublicSubnet2RouteTableAEACF0E2",
+    "workshopVpcpublicSubnet2RouteTableAssociationF104557D",
+    "workshopVpcpublicSubnet2Subnet2D84D2A0",
+    "workshopVpcB999C4C5",
+    "workshopVpcVPCGWE9443FB8"
+   ],
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/eksClusterStack/EKSCluster/manifest-java/Resource/Default"
+   }
+  },
+  "eksClusterStackEKSClustermanifestingress467EABE9": {
+   "Type": "Custom::AWSCDK-EKS-KubernetesResource",
+   "Properties": {
+    "ServiceToken": {
+     "Fn::GetAtt": [
+      "awscdkawseksKubectlProviderNestedStackawscdkawseksKubectlProviderNestedStackResourceA7AEBA6B",
+      "Outputs.CLWorkshopEC2AndEKSawscdkawseksKubectlProviderframeworkonEvent444F6F57Arn"
+     ]
+    },
+    "Manifest": "[{\"apiVersion\":\"networking.k8s.io/v1\",\"kind\":\"Ingress\",\"metadata\":{\"name\":\"server-ingress\",\"annotations\":{\"alb.ingress.kubernetes.io/scheme\":\"internet-facing\",\"alb.ingress.kubernetes.io/target-type\":\"ip\"},\"labels\":{\"aws.cdk.eks/prune-c8790f0bea2bd5dfa9de79a9e57d1aa44e33bba324\":\"\"}},\"spec\":{\"ingressClassName\":\"alb\",\"rules\":[{\"http\":{\"paths\":[{\"path\":\"/\",\"pathType\":\"Prefix\",\"backend\":{\"service\":{\"name\":\"nginx-svc\",\"port\":{\"number\":80}}}}]}}]}}]",
+    "ClusterName": {
+     "Ref": "eksClusterStackEKSClusterED4C7603"
+    },
+    "RoleArn": {
+     "Fn::GetAtt": [
+      "eksClusterStackEKSClusterCreationRoleD56143CC",
+      "Arn"
+     ]
+    },
+    "PruneLabel": "aws.cdk.eks/prune-c8790f0bea2bd5dfa9de79a9e57d1aa44e33bba324"
+   },
+   "DependsOn": [
+    "CLWorkshopEC2AndEKSeksClusterStackEKSClusterEEC7D43AAlbControlleralbsaConditionJsonDFC6C811",
+    "CLWorkshopEC2AndEKSeksClusterStackEKSClusterEEC7D43AAlbControlleralbsamanifestalbsaServiceAccountResource4F2810BA",
+    "CLWorkshopEC2AndEKSeksClusterStackEKSClusterEEC7D43AAlbControlleralbsaRoleDefaultPolicyCC32EF34",
+    "CLWorkshopEC2AndEKSeksClusterStackEKSClusterEEC7D43AAlbControlleralbsaRoleDDBC7AE6",
+    "CLWorkshopEC2AndEKSeksClusterStackEKSClusterEEC7D43AAlbController738831BC",
+    "eksClusterStackEKSClusterKubectlReadyBarrier58F05433",
+    "workshopVpcIGW3C43A0CD",
+    "workshopVpcprivateSubnet1DefaultRouteF1D49A73",
+    "workshopVpcprivateSubnet1RouteTable253960B4",
+    "workshopVpcprivateSubnet1RouteTableAssociation822CDFC6",
+    "workshopVpcprivateSubnet1Subnet230C4CDE",
+    "workshopVpcprivateSubnet2DefaultRoute90DDB5CC",
+    "workshopVpcprivateSubnet2RouteTable46E11A04",
+    "workshopVpcprivateSubnet2RouteTableAssociation2E2B65E5",
+    "workshopVpcprivateSubnet2SubnetF66C2114",
+    "workshopVpcpublicSubnet1DefaultRoute594B4E87",
+    "workshopVpcpublicSubnet1EIPC03FB332",
+    "workshopVpcpublicSubnet1NATGateway1270202C",
+    "workshopVpcpublicSubnet1RouteTable1C40FAF8",
+    "workshopVpcpublicSubnet1RouteTableAssociation3E94745D",
+    "workshopVpcpublicSubnet1SubnetFAC60711",
+    "workshopVpcpublicSubnet2DefaultRouteEB78228B",
+    "workshopVpcpublicSubnet2RouteTableAEACF0E2",
+    "workshopVpcpublicSubnet2RouteTableAssociationF104557D",
+    "workshopVpcpublicSubnet2Subnet2D84D2A0",
+    "workshopVpcB999C4C5",
+    "workshopVpcVPCGWE9443FB8"
+   ],
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/eksClusterStack/EKSCluster/manifest-ingress/Resource/Default"
+   }
+  },
+  "eksClusterStackEKSClustermanifestnode9356959E": {
+   "Type": "Custom::AWSCDK-EKS-KubernetesResource",
+   "Properties": {
+    "ServiceToken": {
+     "Fn::GetAtt": [
+      "awscdkawseksKubectlProviderNestedStackawscdkawseksKubectlProviderNestedStackResourceA7AEBA6B",
+      "Outputs.CLWorkshopEC2AndEKSawscdkawseksKubectlProviderframeworkonEvent444F6F57Arn"
+     ]
+    },
+    "Manifest": {
+     "Fn::Join": [
+      "",
+      [
+       "[{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"name\":\"e-commerce\",\"labels\":{\"aws.cdk.eks/prune-c8b71cef8fd9a4f3d529be7ec4f73d6c2e22cefd24\":\"\"}},\"spec\":{\"type\":\"NodePort\",\"selector\":{\"app\":\"e-commerce-svc\"},\"ports\":[{\"protocol\":\"TCP\",\"port\":80,\"targetPort\":4000}]}},{\"apiVersion\":\"apps/v1\",\"kind\":\"Deployment\",\"metadata\":{\"name\":\"e-commerce-svc\",\"labels\":{\"aws.cdk.eks/prune-c8b71cef8fd9a4f3d529be7ec4f73d6c2e22cefd24\":\"\"}},\"spec\":{\"replicas\":1,\"selector\":{\"matchLabels\":{\"app\":\"e-commerce-svc\"}},\"template\":{\"metadata\":{\"labels\":{\"app\":\"e-commerce-svc\"}},\"spec\":{\"containers\":[{\"name\":\"e-commerce-svc\",\"image\":\"public.ecr.aws/aws-gcr-solutions/centralized-logging-with-opensearch-workshop/e-commerce:v1.1.0\",\"env\":[{\"name\":\"CL_WORKSHOP_DB_SECRET_NAME\",\"value\":\"workshopDBSecret\"},{\"name\":\"CL_REGION\",\"value\":\"",
+       {
+        "Ref": "AWS::Region"
+       },
+       "\"},{\"name\":\"CL_CLOUDFRONT_DOMAIN_NAME\",\"value\":\"",
+       {
+        "Fn::GetAtt": [
+         "CDNWorkshopAssetsD305196A",
+         "DomainName"
+        ]
+       },
+       "\"}],\"resources\":{\"limits\":{\"cpu\":\"250m\",\"memory\":\"256Mi\"}},\"ports\":[{\"containerPort\":4000,\"protocol\":\"TCP\"}]}]}}}}]"
+      ]
+     ]
+    },
+    "ClusterName": {
+     "Ref": "eksClusterStackEKSClusterED4C7603"
+    },
+    "RoleArn": {
+     "Fn::GetAtt": [
+      "eksClusterStackEKSClusterCreationRoleD56143CC",
+      "Arn"
+     ]
+    },
+    "PruneLabel": "aws.cdk.eks/prune-c8b71cef8fd9a4f3d529be7ec4f73d6c2e22cefd24"
+   },
+   "DependsOn": [
+    "eksClusterStackEKSClusterKubectlReadyBarrier58F05433",
+    "workshopVpcIGW3C43A0CD",
+    "workshopVpcprivateSubnet1DefaultRouteF1D49A73",
+    "workshopVpcprivateSubnet1RouteTable253960B4",
+    "workshopVpcprivateSubnet1RouteTableAssociation822CDFC6",
+    "workshopVpcprivateSubnet1Subnet230C4CDE",
+    "workshopVpcprivateSubnet2DefaultRoute90DDB5CC",
+    "workshopVpcprivateSubnet2RouteTable46E11A04",
+    "workshopVpcprivateSubnet2RouteTableAssociation2E2B65E5",
+    "workshopVpcprivateSubnet2SubnetF66C2114",
+    "workshopVpcpublicSubnet1DefaultRoute594B4E87",
+    "workshopVpcpublicSubnet1EIPC03FB332",
+    "workshopVpcpublicSubnet1NATGateway1270202C",
+    "workshopVpcpublicSubnet1RouteTable1C40FAF8",
+    "workshopVpcpublicSubnet1RouteTableAssociation3E94745D",
+    "workshopVpcpublicSubnet1SubnetFAC60711",
+    "workshopVpcpublicSubnet2DefaultRouteEB78228B",
+    "workshopVpcpublicSubnet2RouteTableAEACF0E2",
+    "workshopVpcpublicSubnet2RouteTableAssociationF104557D",
+    "workshopVpcpublicSubnet2Subnet2D84D2A0",
+    "workshopVpcB999C4C5",
+    "workshopVpcVPCGWE9443FB8"
+   ],
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/eksClusterStack/EKSCluster/manifest-node/Resource/Default"
+   }
+  },
+  "eksClusterStackEKSClustermanifestnginx27D0C94B": {
+   "Type": "Custom::AWSCDK-EKS-KubernetesResource",
+   "Properties": {
+    "ServiceToken": {
+     "Fn::GetAtt": [
+      "awscdkawseksKubectlProviderNestedStackawscdkawseksKubectlProviderNestedStackResourceA7AEBA6B",
+      "Outputs.CLWorkshopEC2AndEKSawscdkawseksKubectlProviderframeworkonEvent444F6F57Arn"
+     ]
+    },
+    "Manifest": {
+     "Fn::Join": [
+      "",
+      [
+       "[{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"name\":\"nginx-svc\",\"labels\":{\"aws.cdk.eks/prune-c8ec575abc9828ffce2ce6cd2335bb67cbcfd5ba24\":\"\"}},\"spec\":{\"type\":\"NodePort\",\"selector\":{\"app\":\"nginx-svc\"},\"ports\":[{\"protocol\":\"TCP\",\"port\":80,\"targetPort\":80}]}},{\"apiVersion\":\"apps/v1\",\"kind\":\"Deployment\",\"metadata\":{\"name\":\"nginx-svc\",\"labels\":{\"aws.cdk.eks/prune-c8ec575abc9828ffce2ce6cd2335bb67cbcfd5ba24\":\"\"}},\"spec\":{\"replicas\":1,\"selector\":{\"matchLabels\":{\"app\":\"nginx-svc\"}},\"template\":{\"metadata\":{\"labels\":{\"app\":\"nginx-svc\"}},\"spec\":{\"containers\":[{\"name\":\"nginx-svc\",\"image\":\"public.ecr.aws/aws-gcr-solutions/centralized-logging-with-opensearch-workshop/nginx:v1.1.1\",\"env\":[{\"name\":\"CL_WORKSHOP_DB_SECRET_NAME\",\"value\":\"workshopDBSecret\"},{\"name\":\"CL_REGION\",\"value\":\"",
+       {
+        "Ref": "AWS::Region"
+       },
+       "\"},{\"name\":\"CL_CLOUDFRONT_DOMAIN_NAME\",\"value\":\"",
+       {
+        "Fn::GetAtt": [
+         "CDNWorkshopAssetsD305196A",
+         "DomainName"
+        ]
+       },
+       "\"},{\"name\":\"CL_LOG_GENERATOR_URL\",\"value\":\"https://",
+       {
+        "Ref": "logFakerStackwidgetsapi2936839D"
+       },
+       ".execute-api.",
+       {
+        "Ref": "AWS::Region"
+       },
+       ".",
+       {
+        "Ref": "AWS::URLSuffix"
+       },
+       "/",
+       {
+        "Ref": "logFakerStackwidgetsapiDeploymentStagedev0BAB325E"
+       },
+       "/\"}],\"resources\":{\"limits\":{\"cpu\":\"500m\",\"memory\":\"2048Mi\"}},\"ports\":[{\"containerPort\":80,\"protocol\":\"TCP\"}]}]}}}}]"
+      ]
+     ]
+    },
+    "ClusterName": {
+     "Ref": "eksClusterStackEKSClusterED4C7603"
+    },
+    "RoleArn": {
+     "Fn::GetAtt": [
+      "eksClusterStackEKSClusterCreationRoleD56143CC",
+      "Arn"
+     ]
+    },
+    "PruneLabel": "aws.cdk.eks/prune-c8ec575abc9828ffce2ce6cd2335bb67cbcfd5ba24"
+   },
+   "DependsOn": [
+    "eksClusterStackEKSClusterKubectlReadyBarrier58F05433",
+    "workshopVpcIGW3C43A0CD",
+    "workshopVpcprivateSubnet1DefaultRouteF1D49A73",
+    "workshopVpcprivateSubnet1RouteTable253960B4",
+    "workshopVpcprivateSubnet1RouteTableAssociation822CDFC6",
+    "workshopVpcprivateSubnet1Subnet230C4CDE",
+    "workshopVpcprivateSubnet2DefaultRoute90DDB5CC",
+    "workshopVpcprivateSubnet2RouteTable46E11A04",
+    "workshopVpcprivateSubnet2RouteTableAssociation2E2B65E5",
+    "workshopVpcprivateSubnet2SubnetF66C2114",
+    "workshopVpcpublicSubnet1DefaultRoute594B4E87",
+    "workshopVpcpublicSubnet1EIPC03FB332",
+    "workshopVpcpublicSubnet1NATGateway1270202C",
+    "workshopVpcpublicSubnet1RouteTable1C40FAF8",
+    "workshopVpcpublicSubnet1RouteTableAssociation3E94745D",
+    "workshopVpcpublicSubnet1SubnetFAC60711",
+    "workshopVpcpublicSubnet2DefaultRouteEB78228B",
+    "workshopVpcpublicSubnet2RouteTableAEACF0E2",
+    "workshopVpcpublicSubnet2RouteTableAssociationF104557D",
+    "workshopVpcpublicSubnet2Subnet2D84D2A0",
+    "workshopVpcB999C4C5",
+    "workshopVpcVPCGWE9443FB8"
+   ],
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/eksClusterStack/EKSCluster/manifest-nginx/Resource/Default"
+   }
+  },
+  "eksClusterStackEKSClustermanifestflogFA9441AA": {
+   "Type": "Custom::AWSCDK-EKS-KubernetesResource",
+   "Properties": {
+    "ServiceToken": {
+     "Fn::GetAtt": [
+      "awscdkawseksKubectlProviderNestedStackawscdkawseksKubectlProviderNestedStackResourceA7AEBA6B",
+      "Outputs.CLWorkshopEC2AndEKSawscdkawseksKubectlProviderframeworkonEvent444F6F57Arn"
+     ]
+    },
+    "Manifest": {
+     "Fn::Join": [
+      "",
+      [
+       "[{\"apiVersion\":\"v1\",\"kind\":\"ConfigMap\",\"metadata\":{\"name\":\"benchmark-tool-config-waf-alb\",\"labels\":{\"aws.cdk.eks/prune-c8500b19d86ccae0f2101ef65d912f08faba65dff7\":\"\"}},\"data\":{\"RUNNING_MODE\":\"consist_mode\",\"NUMBER_OF_PROCESSES_PER_POD\":\"1\",\"LOG_GENERATION_PERIOD\":\"2s\",\"LOG_FORMAT\":\"waf-alb\",\"FLUENT_BIT_FLUSH_PERIOD_IN_SECONDS\":\"3\",\"REGION\":\"",
+       {
+        "Ref": "AWS::Region"
+       },
+       "\",\"NUMBER_OF_LINES\":\"1000\",\"BUCKET_NAME\":\"",
+       {
+        "Ref": "clWorkshopWeb089A8C58"
+       },
+       "\",\"TOTAL_FILE_SIZE\":\"50M\",\"UPLOAD_TIMEOUT\":\"2s\",\"JSON_DATE_KEY\":\"false\",\"JSON_DATE_FORMAT\":\"iso8601\",\"APPLICATION_NAME\":\"waf\",\"COMPRESSION\":\"gzip\",\"S3_KEY_FORMAT_TAG_DELIMITERS\":\".-\"}},{\"apiVersion\":\"v1\",\"kind\":\"ConfigMap\",\"metadata\":{\"name\":\"benchmark-tool-config-waf-sql-ingestion\",\"labels\":{\"aws.cdk.eks/prune-c8500b19d86ccae0f2101ef65d912f08faba65dff7\":\"\"}},\"data\":{\"RUNNING_MODE\":\"consist_mode\",\"NUMBER_OF_PROCESSES_PER_POD\":\"1\",\"LOG_GENERATION_PERIOD\":\"60s\",\"LOG_FORMAT\":\"waf-sql-ingestion\",\"FLUENT_BIT_FLUSH_PERIOD_IN_SECONDS\":\"3\",\"REGION\":\"",
+       {
+        "Ref": "AWS::Region"
+       },
+       "\",\"NUMBER_OF_LINES\":\"1000\",\"BUCKET_NAME\":\"",
+       {
+        "Ref": "clWorkshopWeb089A8C58"
+       },
+       "\",\"TOTAL_FILE_SIZE\":\"50M\",\"UPLOAD_TIMEOUT\":\"2s\",\"JSON_DATE_KEY\":\"false\",\"JSON_DATE_FORMAT\":\"iso8601\",\"APPLICATION_NAME\":\"waf\",\"COMPRESSION\":\"gzip\",\"S3_KEY_FORMAT_TAG_DELIMITERS\":\".-\"}},{\"apiVersion\":\"v1\",\"kind\":\"ConfigMap\",\"metadata\":{\"name\":\"benchmark-tool-config-waf-falsely-intercepted\",\"labels\":{\"aws.cdk.eks/prune-c8500b19d86ccae0f2101ef65d912f08faba65dff7\":\"\"}},\"data\":{\"RUNNING_MODE\":\"consist_mode\",\"NUMBER_OF_PROCESSES_PER_POD\":\"1\",\"LOG_GENERATION_PERIOD\":\"60s\",\"LOG_FORMAT\":\"waf-non-sql-ingestion\",\"FLUENT_BIT_FLUSH_PERIOD_IN_SECONDS\":\"3\",\"REGION\":\"",
+       {
+        "Ref": "AWS::Region"
+       },
+       "\",\"NUMBER_OF_LINES\":\"1000\",\"BUCKET_NAME\":\"",
+       {
+        "Ref": "clWorkshopWeb089A8C58"
+       },
+       "\",\"TOTAL_FILE_SIZE\":\"50M\",\"UPLOAD_TIMEOUT\":\"2s\",\"JSON_DATE_KEY\":\"false\",\"JSON_DATE_FORMAT\":\"iso8601\",\"APPLICATION_NAME\":\"waf\",\"COMPRESSION\":\"gzip\",\"S3_KEY_FORMAT_TAG_DELIMITERS\":\".-\"}},{\"apiVersion\":\"apps/v1\",\"kind\":\"Deployment\",\"metadata\":{\"name\":\"benchmark-tool-waf\",\"labels\":{\"aws.cdk.eks/prune-c8500b19d86ccae0f2101ef65d912f08faba65dff7\":\"\",\"app\":\"flog-fluent\"}},\"spec\":{\"replicas\":1,\"selector\":{\"matchLabels\":{\"app\":\"flog-fluent\"}},\"template\":{\"metadata\":{\"labels\":{\"app\":\"flog-fluent\"}},\"spec\":{\"containers\":[{\"name\":\"flog-fluent-bit-waf-alb\",\"image\":\"public.ecr.aws/aws-gcr-solutions/benchmark-tool-mock-waf:latest\",\"resources\":{\"limits\":{\"cpu\":\"100m\",\"memory\":\"256Mi\"}},\"envFrom\":[{\"configMapRef\":{\"name\":\"benchmark-tool-config-waf-alb\"}}],\"args\":[\"/bin/bash\",\"-xec\",\"/usr/local/fluent-bit/bin/runflb.sh $RUNNING_MODE $NUMBER_OF_PROCESSES_PER_POD\\ntail -f /dev/null\\n\"],\"env\":[{\"name\":\"HOSTNAME\",\"valueFrom\":{\"fieldRef\":{\"fieldPath\":\"metadata.name\"}}},{\"name\":\"S3_KEY_FORMAT\",\"value\":\"/AWSLogs/WAFLogs/testwaf/alb/%Y/%m/%d/%H/cl-fake-log-%Y-%m-%d-%H-%M-%S-$UUID.gz\"}]},{\"name\":\"flog-fluent-bit-waf-sql\",\"image\":\"public.ecr.aws/aws-gcr-solutions/benchmark-tool-mock-waf:latest\",\"resources\":{\"limits\":{\"cpu\":\"100m\",\"memory\":\"256Mi\"}},\"envFrom\":[{\"configMapRef\":{\"name\":\"benchmark-tool-config-waf-sql-ingestion\"}}],\"args\":[\"/bin/bash\",\"-xec\",\"/usr/local/fluent-bit/bin/runflb.sh $RUNNING_MODE $NUMBER_OF_PROCESSES_PER_POD\\ntail -f /dev/null\\n\"],\"env\":[{\"name\":\"HOSTNAME\",\"valueFrom\":{\"fieldRef\":{\"fieldPath\":\"metadata.name\"}}},{\"name\":\"S3_KEY_FORMAT\",\"value\":\"/AWSLogs/WAFLogs/testwaf/sql-ingestion/%Y/%m/%d/%H/cl-fake-log-%Y-%m-%d-%H-%M-%S-$UUID.gz\"}]},{\"name\":\"flog-fluent-bit-waf-falsely-intercepted\",\"image\":\"public.ecr.aws/aws-gcr-solutions/benchmark-tool-mock-waf:latest\",\"resources\":{\"limits\":{\"cpu\":\"100m\",\"memory\":\"256Mi\"}},\"envFrom\":[{\"configMapRef\":{\"name\":\"benchmark-tool-config-waf-falsely-intercepted\"}}],\"args\":[\"/bin/bash\",\"-xec\",\"/usr/local/fluent-bit/bin/runflb.sh $RUNNING_MODE $NUMBER_OF_PROCESSES_PER_POD\\ntail -f /dev/null\\n\"],\"env\":[{\"name\":\"HOSTNAME\",\"valueFrom\":{\"fieldRef\":{\"fieldPath\":\"metadata.name\"}}},{\"name\":\"S3_KEY_FORMAT\",\"value\":\"/AWSLogs/WAFLogs/testwaf/falsely-intercepted/%Y/%m/%d/%H/cl-fake-log-%Y-%m-%d-%H-%M-%S-$UUID.gz\"}]}]}}}}]"
+      ]
+     ]
+    },
+    "ClusterName": {
+     "Ref": "eksClusterStackEKSClusterED4C7603"
+    },
+    "RoleArn": {
+     "Fn::GetAtt": [
+      "eksClusterStackEKSClusterCreationRoleD56143CC",
+      "Arn"
+     ]
+    },
+    "PruneLabel": "aws.cdk.eks/prune-c8500b19d86ccae0f2101ef65d912f08faba65dff7"
+   },
+   "DependsOn": [
+    "eksClusterStackEKSClusterKubectlReadyBarrier58F05433",
+    "workshopVpcIGW3C43A0CD",
+    "workshopVpcprivateSubnet1DefaultRouteF1D49A73",
+    "workshopVpcprivateSubnet1RouteTable253960B4",
+    "workshopVpcprivateSubnet1RouteTableAssociation822CDFC6",
+    "workshopVpcprivateSubnet1Subnet230C4CDE",
+    "workshopVpcprivateSubnet2DefaultRoute90DDB5CC",
+    "workshopVpcprivateSubnet2RouteTable46E11A04",
+    "workshopVpcprivateSubnet2RouteTableAssociation2E2B65E5",
+    "workshopVpcprivateSubnet2SubnetF66C2114",
+    "workshopVpcpublicSubnet1DefaultRoute594B4E87",
+    "workshopVpcpublicSubnet1EIPC03FB332",
+    "workshopVpcpublicSubnet1NATGateway1270202C",
+    "workshopVpcpublicSubnet1RouteTable1C40FAF8",
+    "workshopVpcpublicSubnet1RouteTableAssociation3E94745D",
+    "workshopVpcpublicSubnet1SubnetFAC60711",
+    "workshopVpcpublicSubnet2DefaultRouteEB78228B",
+    "workshopVpcpublicSubnet2RouteTableAEACF0E2",
+    "workshopVpcpublicSubnet2RouteTableAssociationF104557D",
+    "workshopVpcpublicSubnet2Subnet2D84D2A0",
+    "workshopVpcB999C4C5",
+    "workshopVpcVPCGWE9443FB8"
+   ],
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/eksClusterStack/EKSCluster/manifest-flog/Resource/Default"
+   }
+  },
+  "eksClusterStackEKSNodePolicy714A16D8": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": "s3:ListBucket",
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::GetAtt": [
+         "clWorkshopWeb089A8C58",
+         "Arn"
+        ]
+       }
+      },
+      {
+       "Action": [
+        "s3:GetBucketAcl",
+        "s3:PutObject",
+        "s3:GetObject",
+        "s3:DeleteObject",
+        "s3:PutObjectTagging",
+        "s3:GetObjectTagging",
+        "s3:DeleteObjectTagging",
+        "s3:GetLifecycleConfiguration",
+        "s3:PutLifecycleConfiguration"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "clWorkshopWeb089A8C58",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "clWorkshopWeb089A8C58",
+             "Arn"
+            ]
+           },
+           "/*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "eksClusterStackEKSNodePolicy714A16D8",
+    "Roles": [
+     {
+      "Ref": "eksClusterStackEKSClusterNodegroupDefaultCapacityNodeGroupRole0AB204DE"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/eksClusterStack/EKSNodePolicy/Resource"
+   }
+  },
+  "eksClusterStackEKSLoadBalancerAttributeC3F3A0BB": {
+   "Type": "Custom::AWSCDK-EKS-KubernetesObjectValue",
+   "Properties": {
+    "ServiceToken": {
+     "Fn::GetAtt": [
+      "awscdkawseksKubectlProviderNestedStackawscdkawseksKubectlProviderNestedStackResourceA7AEBA6B",
+      "Outputs.CLWorkshopEC2AndEKSawscdkawseksKubectlProviderframeworkonEvent444F6F57Arn"
+     ]
+    },
+    "ClusterName": {
+     "Ref": "eksClusterStackEKSClusterED4C7603"
+    },
+    "RoleArn": {
+     "Fn::GetAtt": [
+      "eksClusterStackEKSClusterCreationRoleD56143CC",
+      "Arn"
+     ]
+    },
+    "ObjectType": "ingress",
+    "ObjectName": "server-ingress",
+    "ObjectNamespace": "default",
+    "JsonPath": ".status.loadBalancer.ingress[0].hostname",
+    "TimeoutSeconds": 300
+   },
+   "DependsOn": [
+    "eksClusterStackEKSClusterAwsAuthmanifestAC75C083",
+    "eksClusterStackEKSClusterControlPlaneSecurityGroupB2E3CF2B",
+    "eksClusterStackEKSClusterKubectlReadyBarrier58F05433",
+    "eksClusterStackEKSClustermanifestflogFA9441AA",
+    "eksClusterStackEKSClustermanifestingress467EABE9",
+    "eksClusterStackEKSClustermanifestjavaF8BF6982",
+    "eksClusterStackEKSClustermanifestnginx27D0C94B",
+    "eksClusterStackEKSClustermanifestnode9356959E",
+    "eksClusterStackEKSClusterNodegroupDefaultCapacityNodeGroupRole0AB204DE",
+    "eksClusterStackEKSClusterNodegroupDefaultCapacityA26580AC",
+    "eksClusterStackEKSClusterOpenIdConnectProvider72D167A8",
+    "eksClusterStackEKSClusterCreationRoleDefaultPolicy4F23A639",
+    "eksClusterStackEKSClusterCreationRoleD56143CC",
+    "eksClusterStackEKSClusterED4C7603",
+    "eksClusterStackEKSClusterRole5B2DEA5C"
+   ],
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/eksClusterStack/EKSLoadBalancerAttribute/Resource/Default"
+   }
+  },
+  "awscdkawseksClusterResourceProviderNestedStackawscdkawseksClusterResourceProviderNestedStackResource9827C454": {
+   "Type": "AWS::CloudFormation::Stack",
+   "Properties": {
+    "TemplateURL": {
+     "Fn::Join": [
+      "",
+      [
+       "https://s3.",
+       {
+        "Ref": "AWS::Region"
+       },
+       ".",
+       {
+        "Ref": "AWS::URLSuffix"
+       },
+       "/",
+       {
+        "Fn::Sub": "aws-gcr-solutions-${AWS::Region}"
+       },
+       "/log-hub-workshop/v2.0.2/86c8a15a37429c199f8b98a9f6a4603360b3178f5fc039fe01185c3f097686da"
+      ]
+     ]
+    },
+    "Parameters": {
+     "referencetoCLWorkshopEC2AndEKSeksClusterStackEKSClusterCreationRoleB39AC33FArn": {
+      "Fn::GetAtt": [
+       "eksClusterStackEKSClusterCreationRoleD56143CC",
+       "Arn"
+      ]
+     }
+    }
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/@aws-cdk--aws-eks.ClusterResourceProvider.NestedStack/@aws-cdk--aws-eks.ClusterResourceProvider.NestedStackResource",
+    "aws:asset:path": "CLWorkshopEC2AndEKSawscdkawseksClusterResourceProvider2226C892.nested.template.json",
+    "aws:asset:property": "TemplateURL"
+   }
+  },
+  "awscdkawseksKubectlProviderNestedStackawscdkawseksKubectlProviderNestedStackResourceA7AEBA6B": {
+   "Type": "AWS::CloudFormation::Stack",
+   "Properties": {
+    "TemplateURL": {
+     "Fn::Join": [
+      "",
+      [
+       "https://s3.",
+       {
+        "Ref": "AWS::Region"
+       },
+       ".",
+       {
+        "Ref": "AWS::URLSuffix"
+       },
+       "/",
+       {
+        "Fn::Sub": "aws-gcr-solutions-${AWS::Region}"
+       },
+       "/log-hub-workshop/v2.0.2/4da0926f3fca4aee655dce8ba21012b9a450897610ed9c12d64827124c01b479"
+      ]
+     ]
+    },
+    "Parameters": {
+     "referencetoCLWorkshopEC2AndEKSeksClusterStackEKSCluster4E46D3B7Arn": {
+      "Fn::GetAtt": [
+       "eksClusterStackEKSClusterED4C7603",
+       "Arn"
+      ]
+     },
+     "referencetoCLWorkshopEC2AndEKSeksClusterStackEKSClusterCreationRoleB39AC33FArn": {
+      "Fn::GetAtt": [
+       "eksClusterStackEKSClusterCreationRoleD56143CC",
+       "Arn"
+      ]
+     },
+     "referencetoCLWorkshopEC2AndEKSeksClusterStackKubectlv24LayerA523AB2CRef": {
+      "Ref": "eksClusterStackKubectlv24Layer80331900"
+     }
+    }
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/@aws-cdk--aws-eks.KubectlProvider.NestedStack/@aws-cdk--aws-eks.KubectlProvider.NestedStackResource",
+    "aws:asset:path": "CLWorkshopEC2AndEKSawscdkawseksKubectlProviderA4DCC5EB.nested.template.json",
+    "aws:asset:property": "TemplateURL"
+   }
+  },
+  "CLWorkshopEC2AndEKSeksClusterStackEKSClusterEEC7D43AAlbControlleralbsaConditionJsonDFC6C811": {
+   "Type": "Custom::AWSCDKCfnJson",
+   "Properties": {
+    "ServiceToken": {
+     "Fn::GetAtt": [
+      "AWSCDKCfnUtilsProviderCustomResourceProviderHandlerCF82AA57",
+      "Arn"
+     ]
+    },
+    "Value": {
+     "Fn::Join": [
+      "",
+      [
+       "{\"",
+       {
+        "Fn::Select": [
+         1,
+         {
+          "Fn::Split": [
+           ":oidc-provider/",
+           {
+            "Ref": "eksClusterStackEKSClusterOpenIdConnectProvider72D167A8"
+           }
+          ]
+         }
+        ]
+       },
+       ":aud\":\"sts.amazonaws.com\",\"",
+       {
+        "Fn::Select": [
+         1,
+         {
+          "Fn::Split": [
+           ":oidc-provider/",
+           {
+            "Ref": "eksClusterStackEKSClusterOpenIdConnectProvider72D167A8"
+           }
+          ]
+         }
+        ]
+       },
+       ":sub\":\"system:serviceaccount:kube-system:aws-load-balancer-controller\"}"
+      ]
+     ]
+    }
+   },
+   "DependsOn": [
+    "eksClusterStackEKSClusterNodegroupDefaultCapacityNodeGroupRole0AB204DE",
+    "eksClusterStackEKSClusterNodegroupDefaultCapacityA26580AC"
+   ],
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/CLWorkshopEC2AndEKSeksClusterStackEKSClusterEEC7D43A-AlbController/alb-sa/ConditionJson/Resource/Default"
+   }
+  },
+  "CLWorkshopEC2AndEKSeksClusterStackEKSClusterEEC7D43AAlbControlleralbsaRoleDDBC7AE6": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRoleWithWebIdentity",
+       "Condition": {
+        "StringEquals": {
+         "Fn::GetAtt": [
+          "CLWorkshopEC2AndEKSeksClusterStackEKSClusterEEC7D43AAlbControlleralbsaConditionJsonDFC6C811",
+          "Value"
+         ]
+        }
+       },
+       "Effect": "Allow",
+       "Principal": {
+        "Federated": {
+         "Ref": "eksClusterStackEKSClusterOpenIdConnectProvider72D167A8"
+        }
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    }
+   },
+   "DependsOn": [
+    "eksClusterStackEKSClusterNodegroupDefaultCapacityNodeGroupRole0AB204DE",
+    "eksClusterStackEKSClusterNodegroupDefaultCapacityA26580AC"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/CLWorkshopEC2AndEKSeksClusterStackEKSClusterEEC7D43A-AlbController/alb-sa/Role/Resource"
+   }
+  },
+  "CLWorkshopEC2AndEKSeksClusterStackEKSClusterEEC7D43AAlbControlleralbsaRoleDefaultPolicyCC32EF34": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": "iam:CreateServiceLinkedRole",
+       "Condition": {
+        "StringEquals": {
+         "iam:AWSServiceName": "elasticloadbalancing.amazonaws.com"
+        }
+       },
+       "Effect": "Allow",
+       "Resource": "*"
+      },
+      {
+       "Action": [
+        "ec2:DescribeAccountAttributes",
+        "ec2:DescribeAddresses",
+        "ec2:DescribeAvailabilityZones",
+        "ec2:DescribeInternetGateways",
+        "ec2:DescribeVpcs",
+        "ec2:DescribeVpcPeeringConnections",
+        "ec2:DescribeSubnets",
+        "ec2:DescribeSecurityGroups",
+        "ec2:DescribeInstances",
+        "ec2:DescribeNetworkInterfaces",
+        "ec2:DescribeTags",
+        "ec2:GetCoipPoolUsage",
+        "ec2:DescribeCoipPools",
+        "elasticloadbalancing:DescribeLoadBalancers",
+        "elasticloadbalancing:DescribeLoadBalancerAttributes",
+        "elasticloadbalancing:DescribeListeners",
+        "elasticloadbalancing:DescribeListenerCertificates",
+        "elasticloadbalancing:DescribeSSLPolicies",
+        "elasticloadbalancing:DescribeRules",
+        "elasticloadbalancing:DescribeTargetGroups",
+        "elasticloadbalancing:DescribeTargetGroupAttributes",
+        "elasticloadbalancing:DescribeTargetHealth",
+        "elasticloadbalancing:DescribeTags"
+       ],
+       "Effect": "Allow",
+       "Resource": "*"
+      },
+      {
+       "Action": [
+        "cognito-idp:DescribeUserPoolClient",
+        "acm:ListCertificates",
+        "acm:DescribeCertificate",
+        "iam:ListServerCertificates",
+        "iam:GetServerCertificate",
+        "waf-regional:GetWebACL",
+        "waf-regional:GetWebACLForResource",
+        "waf-regional:AssociateWebACL",
+        "waf-regional:DisassociateWebACL",
+        "wafv2:GetWebACL",
+        "wafv2:GetWebACLForResource",
+        "wafv2:AssociateWebACL",
+        "wafv2:DisassociateWebACL",
+        "shield:GetSubscriptionState",
+        "shield:DescribeProtection",
+        "shield:CreateProtection",
+        "shield:DeleteProtection"
+       ],
+       "Effect": "Allow",
+       "Resource": "*"
+      },
+      {
+       "Action": [
+        "ec2:AuthorizeSecurityGroupIngress",
+        "ec2:RevokeSecurityGroupIngress"
+       ],
+       "Effect": "Allow",
+       "Resource": "*"
+      },
+      {
+       "Action": "ec2:CreateSecurityGroup",
+       "Effect": "Allow",
+       "Resource": "*"
+      },
+      {
+       "Action": "ec2:CreateTags",
+       "Condition": {
+        "StringEquals": {
+         "ec2:CreateAction": "CreateSecurityGroup"
+        }
+       },
+       "Effect": "Allow",
+       "Resource": "arn:aws-cn:ec2:*:*:security-group/*"
+      },
+      {
+       "Action": [
+        "ec2:CreateTags",
+        "ec2:DeleteTags"
+       ],
+       "Effect": "Allow",
+       "Resource": "arn:aws-cn:ec2:*:*:security-group/*"
+      },
+      {
+       "Action": [
+        "ec2:AuthorizeSecurityGroupIngress",
+        "ec2:RevokeSecurityGroupIngress",
+        "ec2:DeleteSecurityGroup"
+       ],
+       "Effect": "Allow",
+       "Resource": "*"
+      },
+      {
+       "Action": [
+        "elasticloadbalancing:CreateLoadBalancer",
+        "elasticloadbalancing:CreateTargetGroup"
+       ],
+       "Effect": "Allow",
+       "Resource": "*"
+      },
+      {
+       "Action": [
+        "elasticloadbalancing:CreateListener",
+        "elasticloadbalancing:DeleteListener",
+        "elasticloadbalancing:CreateRule",
+        "elasticloadbalancing:DeleteRule"
+       ],
+       "Effect": "Allow",
+       "Resource": "*"
+      },
+      {
+       "Action": [
+        "elasticloadbalancing:AddTags",
+        "elasticloadbalancing:RemoveTags"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        "arn:aws-cn:elasticloadbalancing:*:*:targetgroup/*/*",
+        "arn:aws-cn:elasticloadbalancing:*:*:loadbalancer/net/*/*",
+        "arn:aws-cn:elasticloadbalancing:*:*:loadbalancer/app/*/*"
+       ]
+      },
+      {
+       "Action": [
+        "elasticloadbalancing:AddTags",
+        "elasticloadbalancing:RemoveTags"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        "arn:aws-cn:elasticloadbalancing:*:*:listener/net/*/*/*",
+        "arn:aws-cn:elasticloadbalancing:*:*:listener/app/*/*/*",
+        "arn:aws-cn:elasticloadbalancing:*:*:listener-rule/net/*/*/*",
+        "arn:aws-cn:elasticloadbalancing:*:*:listener-rule/app/*/*/*"
+       ]
+      },
+      {
+       "Action": [
+        "elasticloadbalancing:ModifyLoadBalancerAttributes",
+        "elasticloadbalancing:SetIpAddressType",
+        "elasticloadbalancing:SetSecurityGroups",
+        "elasticloadbalancing:SetSubnets",
+        "elasticloadbalancing:DeleteLoadBalancer",
+        "elasticloadbalancing:ModifyTargetGroup",
+        "elasticloadbalancing:ModifyTargetGroupAttributes",
+        "elasticloadbalancing:DeleteTargetGroup"
+       ],
+       "Effect": "Allow",
+       "Resource": "*"
+      },
+      {
+       "Action": [
+        "elasticloadbalancing:RegisterTargets",
+        "elasticloadbalancing:DeregisterTargets"
+       ],
+       "Effect": "Allow",
+       "Resource": "arn:aws-cn:elasticloadbalancing:*:*:targetgroup/*/*"
+      },
+      {
+       "Action": [
+        "elasticloadbalancing:SetWebAcl",
+        "elasticloadbalancing:ModifyListener",
+        "elasticloadbalancing:AddListenerCertificates",
+        "elasticloadbalancing:RemoveListenerCertificates",
+        "elasticloadbalancing:ModifyRule"
+       ],
+       "Effect": "Allow",
+       "Resource": "*"
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "CLWorkshopEC2AndEKSeksClusterStackEKSClusterEEC7D43AAlbControlleralbsaRoleDefaultPolicyCC32EF34",
+    "Roles": [
+     {
+      "Ref": "CLWorkshopEC2AndEKSeksClusterStackEKSClusterEEC7D43AAlbControlleralbsaRoleDDBC7AE6"
+     }
+    ]
+   },
+   "DependsOn": [
+    "eksClusterStackEKSClusterNodegroupDefaultCapacityNodeGroupRole0AB204DE",
+    "eksClusterStackEKSClusterNodegroupDefaultCapacityA26580AC"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/CLWorkshopEC2AndEKSeksClusterStackEKSClusterEEC7D43A-AlbController/alb-sa/Role/DefaultPolicy/Resource"
+   }
+  },
+  "CLWorkshopEC2AndEKSeksClusterStackEKSClusterEEC7D43AAlbControlleralbsamanifestalbsaServiceAccountResource4F2810BA": {
+   "Type": "Custom::AWSCDK-EKS-KubernetesResource",
+   "Properties": {
+    "ServiceToken": {
+     "Fn::GetAtt": [
+      "awscdkawseksKubectlProviderNestedStackawscdkawseksKubectlProviderNestedStackResourceA7AEBA6B",
+      "Outputs.CLWorkshopEC2AndEKSawscdkawseksKubectlProviderframeworkonEvent444F6F57Arn"
+     ]
+    },
+    "Manifest": {
+     "Fn::Join": [
+      "",
+      [
+       "[{\"apiVersion\":\"v1\",\"kind\":\"ServiceAccount\",\"metadata\":{\"name\":\"aws-load-balancer-controller\",\"namespace\":\"kube-system\",\"labels\":{\"aws.cdk.eks/prune-c81d04685b4c8643b5bb3ec8ae4757b6c5a8375381\":\"\",\"app.kubernetes.io/name\":\"aws-load-balancer-controller\"},\"annotations\":{\"eks.amazonaws.com/role-arn\":\"",
+       {
+        "Fn::GetAtt": [
+         "CLWorkshopEC2AndEKSeksClusterStackEKSClusterEEC7D43AAlbControlleralbsaRoleDDBC7AE6",
+         "Arn"
+        ]
+       },
+       "\"}}}]"
+      ]
+     ]
+    },
+    "ClusterName": {
+     "Ref": "eksClusterStackEKSClusterED4C7603"
+    },
+    "RoleArn": {
+     "Fn::GetAtt": [
+      "eksClusterStackEKSClusterCreationRoleD56143CC",
+      "Arn"
+     ]
+    },
+    "PruneLabel": "aws.cdk.eks/prune-c81d04685b4c8643b5bb3ec8ae4757b6c5a8375381"
+   },
+   "DependsOn": [
+    "eksClusterStackEKSClusterKubectlReadyBarrier58F05433",
+    "eksClusterStackEKSClusterNodegroupDefaultCapacityNodeGroupRole0AB204DE",
+    "eksClusterStackEKSClusterNodegroupDefaultCapacityA26580AC"
+   ],
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/CLWorkshopEC2AndEKSeksClusterStackEKSClusterEEC7D43A-AlbController/alb-sa/manifest-alb-saServiceAccountResource/Resource/Default"
+   }
+  },
+  "CLWorkshopEC2AndEKSeksClusterStackEKSClusterEEC7D43AAlbController738831BC": {
+   "Type": "Custom::AWSCDK-EKS-HelmChart",
+   "Properties": {
+    "ServiceToken": {
+     "Fn::GetAtt": [
+      "awscdkawseksKubectlProviderNestedStackawscdkawseksKubectlProviderNestedStackResourceA7AEBA6B",
+      "Outputs.CLWorkshopEC2AndEKSawscdkawseksKubectlProviderframeworkonEvent444F6F57Arn"
+     ]
+    },
+    "ClusterName": {
+     "Ref": "eksClusterStackEKSClusterED4C7603"
+    },
+    "RoleArn": {
+     "Fn::GetAtt": [
+      "eksClusterStackEKSClusterCreationRoleD56143CC",
+      "Arn"
+     ]
+    },
+    "Release": "aws-load-balancer-controller",
+    "Chart": "aws-load-balancer-controller",
+    "Version": "1.4.1",
+    "Wait": true,
+    "Timeout": "900s",
+    "Values": {
+     "Fn::Join": [
+      "",
+      [
+       "{\"clusterName\":\"",
+       {
+        "Ref": "eksClusterStackEKSClusterED4C7603"
+       },
+       "\",\"serviceAccount\":{\"create\":false,\"name\":\"aws-load-balancer-controller\"},\"region\":\"",
+       {
+        "Ref": "AWS::Region"
+       },
+       "\",\"vpcId\":\"",
+       {
+        "Ref": "workshopVpcB999C4C5"
+       },
+       "\",\"image\":{\"repository\":\"918309763551.dkr.ecr.cn-north-1.amazonaws.com.cn/amazon/aws-load-balancer-controller\",\"tag\":\"v2.4.1\"}}"
+      ]
+     ]
+    },
+    "Namespace": "kube-system",
+    "Repository": "https://aws.github.io/eks-charts",
+    "CreateNamespace": true
+   },
+   "DependsOn": [
+    "CLWorkshopEC2AndEKSeksClusterStackEKSClusterEEC7D43AAlbControlleralbsaConditionJsonDFC6C811",
+    "CLWorkshopEC2AndEKSeksClusterStackEKSClusterEEC7D43AAlbControlleralbsamanifestalbsaServiceAccountResource4F2810BA",
+    "CLWorkshopEC2AndEKSeksClusterStackEKSClusterEEC7D43AAlbControlleralbsaRoleDefaultPolicyCC32EF34",
+    "CLWorkshopEC2AndEKSeksClusterStackEKSClusterEEC7D43AAlbControlleralbsaRoleDDBC7AE6",
+    "eksClusterStackEKSClusterAwsAuthmanifestAC75C083",
+    "eksClusterStackEKSClusterKubectlReadyBarrier58F05433",
+    "eksClusterStackEKSClusterNodegroupDefaultCapacityNodeGroupRole0AB204DE",
+    "eksClusterStackEKSClusterNodegroupDefaultCapacityA26580AC",
+    "eksClusterStackEKSClusterOpenIdConnectProvider72D167A8"
+   ],
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/CLWorkshopEC2AndEKSeksClusterStackEKSClusterEEC7D43A-AlbController/Resource/Resource/Default"
+   }
+  },
+  "CustomAWSCDKOpenIdConnectProviderCustomResourceProviderRole517FED65": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Version": "2012-10-17",
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ]
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Sub": "arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+     }
+    ],
+    "Policies": [
+     {
+      "PolicyName": "Inline",
+      "PolicyDocument": {
+       "Version": "2012-10-17",
+       "Statement": [
+        {
+         "Effect": "Allow",
+         "Resource": "*",
+         "Action": [
+          "iam:CreateOpenIDConnectProvider",
+          "iam:DeleteOpenIDConnectProvider",
+          "iam:UpdateOpenIDConnectProviderThumbprint",
+          "iam:AddClientIDToOpenIDConnectProvider",
+          "iam:RemoveClientIDFromOpenIDConnectProvider"
+         ]
+        }
+       ]
+      }
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/Custom::AWSCDKOpenIdConnectProviderCustomResourceProvider/Role"
+   }
+  },
+  "CustomAWSCDKOpenIdConnectProviderCustomResourceProviderHandlerF2C543E0": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": {
+      "Fn::Sub": "aws-gcr-solutions-${AWS::Region}"
+     },
+     "S3Key": "log-hub-workshop/v2.0.2/086f508ae8b4a8d34bf4cc41b0368212cefb106c92eb809b2e000c60d35a8f33.zip"
+    },
+    "Timeout": 900,
+    "MemorySize": 128,
+    "Handler": "__entrypoint__.handler",
+    "Role": {
+     "Fn::GetAtt": [
+      "CustomAWSCDKOpenIdConnectProviderCustomResourceProviderRole517FED65",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs16.x"
+   },
+   "DependsOn": [
+    "CustomAWSCDKOpenIdConnectProviderCustomResourceProviderRole517FED65"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/Custom::AWSCDKOpenIdConnectProviderCustomResourceProvider/Handler",
+    "aws:asset:path": "asset.086f508ae8b4a8d34bf4cc41b0368212cefb106c92eb809b2e000c60d35a8f33",
+    "aws:asset:property": "Code"
+   }
+  },
+  "AWSCDKCfnUtilsProviderCustomResourceProviderRoleFE0EE867": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Version": "2012-10-17",
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ]
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Sub": "arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/AWSCDKCfnUtilsProviderCustomResourceProvider/Role"
+   }
+  },
+  "AWSCDKCfnUtilsProviderCustomResourceProviderHandlerCF82AA57": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": {
+      "Fn::Sub": "aws-gcr-solutions-${AWS::Region}"
+     },
+     "S3Key": "log-hub-workshop/v2.0.2/26c112af1f276b5d27a75309a6bc859d69debba531106f24403856cad6b6c825.zip"
+    },
+    "Timeout": 900,
+    "MemorySize": 128,
+    "Handler": "__entrypoint__.handler",
+    "Role": {
+     "Fn::GetAtt": [
+      "AWSCDKCfnUtilsProviderCustomResourceProviderRoleFE0EE867",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs14.x"
+   },
+   "DependsOn": [
+    "AWSCDKCfnUtilsProviderCustomResourceProviderRoleFE0EE867"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/AWSCDKCfnUtilsProviderCustomResourceProvider/Handler",
+    "aws:asset:path": "asset.26c112af1f276b5d27a75309a6bc859d69debba531106f24403856cad6b6c825",
+    "aws:asset:property": "Code"
+   }
+  },
+  "wafStackCentalWebACL1CB93C46": {
+   "Type": "AWS::WAFv2::WebACL",
+   "Properties": {
+    "DefaultAction": {
+     "Allow": {}
+    },
+    "Scope": "REGIONAL",
+    "VisibilityConfig": {
+     "CloudWatchMetricsEnabled": true,
+     "MetricName": "MetricForWebACLCDK",
+     "SampledRequestsEnabled": true
+    },
+    "Name": "CentralCLWebACL",
+    "Rules": [
+     {
+      "Name": "AWSManagedRulesAmazonIpReputation",
+      "OverrideAction": {
+       "None": {}
+      },
+      "Priority": 0,
+      "Statement": {
+       "ManagedRuleGroupStatement": {
+        "Name": "AWSManagedRulesAmazonIpReputationList",
+        "VendorName": "AWS"
+       }
+      },
+      "VisibilityConfig": {
+       "CloudWatchMetricsEnabled": true,
+       "MetricName": "MetricForWebACLCDK-IpRep",
+       "SampledRequestsEnabled": true
+      }
+     },
+     {
+      "Name": "AWSManagedRulesCommonRule",
+      "OverrideAction": {
+       "None": {}
+      },
+      "Priority": 1,
+      "Statement": {
+       "ManagedRuleGroupStatement": {
+        "ExcludedRules": [
+         {
+          "Name": "SizeRestrictions_BODY"
+         }
+        ],
+        "Name": "AWSManagedRulesCommonRuleSet",
+        "VendorName": "AWS"
+       }
+      },
+      "VisibilityConfig": {
+       "CloudWatchMetricsEnabled": true,
+       "MetricName": "MetricForWebACLCDK-CRS",
+       "SampledRequestsEnabled": true
+      }
+     },
+     {
+      "Name": "AWSManagedRulesKnownBadInputsRule",
+      "OverrideAction": {
+       "None": {}
+      },
+      "Priority": 2,
+      "Statement": {
+       "ManagedRuleGroupStatement": {
+        "Name": "AWSManagedRulesKnownBadInputsRuleSet",
+        "VendorName": "AWS"
+       }
+      },
+      "VisibilityConfig": {
+       "CloudWatchMetricsEnabled": true,
+       "MetricName": "MetricForWebACLCDK-BAD",
+       "SampledRequestsEnabled": true
+      }
+     },
+     {
+      "Name": "AWSManagedRulesSQLiRule",
+      "OverrideAction": {
+       "None": {}
+      },
+      "Priority": 3,
+      "Statement": {
+       "ManagedRuleGroupStatement": {
+        "Name": "AWSManagedRulesSQLiRuleSet",
+        "VendorName": "AWS"
+       }
+      },
+      "VisibilityConfig": {
+       "CloudWatchMetricsEnabled": true,
+       "MetricName": "MetricForWebACLCDK-SQLi",
+       "SampledRequestsEnabled": true
+      }
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/wafStack/CentalWebACL"
+   }
+  },
+  "wafStackwafLoggingfirehoseloggroupEFBF2483": {
+   "Type": "AWS::Logs::LogGroup",
+   "UpdateReplacePolicy": "Retain",
+   "DeletionPolicy": "Retain",
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/wafStack/wafLogging/firehose-log-group/Resource",
+    "cfn_nag": {
+     "rules_to_suppress": [
+      {
+       "id": "W86",
+       "reason": "Retention period for CloudWatchLogs LogGroups are set to 'Never Expire' to preserve customer data indefinitely"
+      },
+      {
+       "id": "W84",
+       "reason": "By default CloudWatchLogs LogGroups data is encrypted using the CloudWatch server-side encryption keys (AWS Managed Keys)"
+      }
+     ]
+    }
+   }
+  },
+  "wafStackwafLoggingfirehoseloggroupfirehoselogstream7E7E4551": {
+   "Type": "AWS::Logs::LogStream",
+   "Properties": {
+    "LogGroupName": {
+     "Ref": "wafStackwafLoggingfirehoseloggroupEFBF2483"
+    }
+   },
+   "UpdateReplacePolicy": "Retain",
+   "DeletionPolicy": "Retain",
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/wafStack/wafLogging/firehose-log-group/firehose-log-stream/Resource"
+   }
+  },
+  "wafStackwafLoggingKinesisFirehoseRole5745FD3E": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "firehose.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/wafStack/wafLogging/KinesisFirehoseRole/Resource"
+   }
+  },
+  "wafStackwafLoggingKinesisFirehosePolicy811CC321": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "s3:AbortMultipartUpload",
+        "s3:GetBucketLocation",
+        "s3:GetObject",
+        "s3:ListBucket",
+        "s3:ListBucketMultipartUploads",
+        "s3:PutObject"
+       ],
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "clWorkshopWeb089A8C58",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "clWorkshopWeb089A8C58",
+             "Arn"
+            ]
+           },
+           "/*"
+          ]
+         ]
+        }
+       ]
+      },
+      {
+       "Action": "logs:PutLogEvents",
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          "arn:",
+          {
+           "Ref": "AWS::Partition"
+          },
+          ":logs:",
+          {
+           "Ref": "AWS::Region"
+          },
+          ":",
+          {
+           "Ref": "AWS::AccountId"
+          },
+          ":log-group:",
+          {
+           "Ref": "wafStackwafLoggingfirehoseloggroupEFBF2483"
+          },
+          ":log-stream:",
+          {
+           "Ref": "wafStackwafLoggingfirehoseloggroupfirehoselogstream7E7E4551"
+          }
+         ]
+        ]
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "wafStackwafLoggingKinesisFirehosePolicy811CC321",
+    "Roles": [
+     {
+      "Ref": "wafStackwafLoggingKinesisFirehoseRole5745FD3E"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/wafStack/wafLogging/KinesisFirehosePolicy/Resource"
+   }
+  },
+  "wafStackwafLoggingKinesisFirehoseB209B02B": {
+   "Type": "AWS::KinesisFirehose::DeliveryStream",
+   "Properties": {
+    "DeliveryStreamEncryptionConfigurationInput": {
+     "KeyType": "AWS_OWNED_CMK"
+    },
+    "DeliveryStreamName": {
+     "Fn::Join": [
+      "",
+      [
+       "aws-waf-logs-",
+       {
+        "Ref": "AWS::StackName"
+       }
+      ]
+     ]
+    },
+    "DeliveryStreamType": "DirectPut",
+    "ExtendedS3DestinationConfiguration": {
+     "BucketARN": {
+      "Fn::GetAtt": [
+       "clWorkshopWeb089A8C58",
+       "Arn"
+      ]
+     },
+     "BufferingHints": {
+      "IntervalInSeconds": 300,
+      "SizeInMBs": 5
+     },
+     "CloudWatchLoggingOptions": {
+      "Enabled": true,
+      "LogGroupName": {
+       "Ref": "wafStackwafLoggingfirehoseloggroupEFBF2483"
+      },
+      "LogStreamName": {
+       "Ref": "wafStackwafLoggingfirehoseloggroupfirehoselogstream7E7E4551"
+      }
+     },
+     "CompressionFormat": "GZIP",
+     "EncryptionConfiguration": {
+      "KMSEncryptionConfig": {
+       "AWSKMSKeyARN": {
+        "Fn::Join": [
+         "",
+         [
+          "arn:",
+          {
+           "Ref": "AWS::Partition"
+          },
+          ":kms:",
+          {
+           "Ref": "AWS::Region"
+          },
+          ":",
+          {
+           "Ref": "AWS::AccountId"
+          },
+          ":alias/aws/s3"
+         ]
+        ]
+       }
+      }
+     },
+     "ErrorOutputPrefix": "errors/year=!{timestamp:yyyy}/month=!{timestamp:MM}/day=!{timestamp:dd}/hour=!{timestamp:HH}/!{firehose:error-output-type}",
+     "Prefix": "AWSLogs/WAFLogs/",
+     "RoleARN": {
+      "Fn::GetAtt": [
+       "wafStackwafLoggingKinesisFirehoseRole5745FD3E",
+       "Arn"
+      ]
+     }
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/wafStack/wafLogging/KinesisFirehose"
+   }
+  },
+  "wafStackwafAssociationHelperFnPolicy6DB2E9B4": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents",
+        "logs:PutSubscriptionFilter",
+        "logs:putDestination",
+        "logs:putDestinationPolicy",
+        "logs:DeleteSubscriptionFilter",
+        "logs:DescribeLogGroups"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          "arn:",
+          {
+           "Ref": "AWS::Partition"
+          },
+          ":logs:",
+          {
+           "Ref": "AWS::Region"
+          },
+          ":",
+          {
+           "Ref": "AWS::AccountId"
+          },
+          ":*"
+         ]
+        ]
+       }
+      },
+      {
+       "Action": [
+        "elasticloadbalancing:DescribeLoadBalancers",
+        "elasticloadbalancing:SetWebACL"
+       ],
+       "Effect": "Allow",
+       "Resource": "*"
+      },
+      {
+       "Action": [
+        "wafv2:AssociateWebACL",
+        "wafv2:DisassociateWebACL",
+        "wafv2:PutLoggingConfiguration",
+        "wafv2:DeleteLoggingConfiguration"
+       ],
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::Join": [
+         "",
+         [
+          "arn:",
+          {
+           "Ref": "AWS::Partition"
+          },
+          ":wafv2:",
+          {
+           "Ref": "AWS::Region"
+          },
+          ":",
+          {
+           "Ref": "AWS::AccountId"
+          },
+          ":*"
+         ]
+        ]
+       }
+      },
+      {
+       "Action": "iam:CreateServiceLinkedRole",
+       "Effect": "Allow",
+       "Resource": "*"
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": {
+     "Fn::Join": [
+      "",
+      [
+       {
+        "Ref": "AWS::StackName"
+       },
+       "-wafAssociationHelperFnPolicy"
+      ]
+     ]
+    },
+    "Roles": [
+     {
+      "Ref": "wafStackwafAssociationHelperFnRole97EEAF47"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/wafStack/wafAssociationHelperFnPolicy/Resource"
+   }
+  },
+  "wafStackwafAssociationHelperFnRole97EEAF47": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/wafStack/wafAssociationHelperFnRole/Resource"
+   }
+  },
+  "wafStackwafAssociationHelperFn2B5955BF": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": {
+      "Fn::Sub": "aws-gcr-solutions-${AWS::Region}"
+     },
+     "S3Key": "log-hub-workshop/v2.0.2/2fb9ea7ac07b6a39eb492a92aabe485a78fc35b174fb64815a9c1efc3f1901fd.zip"
+    },
+    "Role": {
+     "Fn::GetAtt": [
+      "wafStackwafAssociationHelperFnRole97EEAF47",
+      "Arn"
+     ]
+    },
+    "Description": {
+     "Fn::Join": [
+      "",
+      [
+       {
+        "Ref": "AWS::StackName"
+       },
+       " - Create WAF Association for ALBs"
+      ]
+     ]
+    },
+    "Environment": {
+     "Variables": {
+      "ALB_DNS_NAMES": {
+       "Fn::Join": [
+        ",",
+        [
+         {
+          "Fn::GetAtt": [
+           "ec2ClusterStackworkshopEC2Alb5012A70F",
+           "DNSName"
+          ]
+         },
+         {
+          "Fn::GetAtt": [
+           "eksClusterStackEKSLoadBalancerAttributeC3F3A0BB",
+           "Value"
+          ]
+         }
+        ]
+       ]
+      },
+      "WAF_ACL_ARN": {
+       "Fn::GetAtt": [
+        "wafStackCentalWebACL1CB93C46",
+        "Arn"
+       ]
+      },
+      "KDF_ARN": {
+       "Fn::GetAtt": [
+        "wafStackwafLoggingKinesisFirehoseB209B02B",
+        "Arn"
+       ]
+      }
+     }
+    },
+    "Handler": "waf_association_helper.lambda_handler",
+    "MemorySize": 256,
+    "Runtime": "python3.9",
+    "Timeout": 60
+   },
+   "DependsOn": [
+    "wafStackCentalWebACL1CB93C46",
+    "wafStackwafAssociationHelperFnRole97EEAF47"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/wafStack/wafAssociationHelperFn/Resource",
+    "aws:asset:path": "asset.2fb9ea7ac07b6a39eb492a92aabe485a78fc35b174fb64815a9c1efc3f1901fd",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
+   }
+  },
+  "wafStackwafAssociationHelperProviderframeworkonEventServiceRole4FD62518": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "DependsOn": [
+    "wafStackwafAssociationHelperFn2B5955BF"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/wafStack/wafAssociationHelperProvider/framework-onEvent/ServiceRole/Resource"
+   }
+  },
+  "wafStackwafAssociationHelperProviderframeworkonEventServiceRoleDefaultPolicy7500F617": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": "lambda:InvokeFunction",
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "wafStackwafAssociationHelperFn2B5955BF",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "wafStackwafAssociationHelperFn2B5955BF",
+             "Arn"
+            ]
+           },
+           ":*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "wafStackwafAssociationHelperProviderframeworkonEventServiceRoleDefaultPolicy7500F617",
+    "Roles": [
+     {
+      "Ref": "wafStackwafAssociationHelperProviderframeworkonEventServiceRole4FD62518"
+     }
+    ]
+   },
+   "DependsOn": [
+    "wafStackwafAssociationHelperFn2B5955BF"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/wafStack/wafAssociationHelperProvider/framework-onEvent/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "wafStackwafAssociationHelperProviderframeworkonEvent4F3FD320": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": {
+      "Fn::Sub": "aws-gcr-solutions-${AWS::Region}"
+     },
+     "S3Key": "log-hub-workshop/v2.0.2/53c95d71cfd280747d971a38505aea07f812fdba75874a090358a2fc4f58f79b.zip"
+    },
+    "Role": {
+     "Fn::GetAtt": [
+      "wafStackwafAssociationHelperProviderframeworkonEventServiceRole4FD62518",
+      "Arn"
+     ]
+    },
+    "Description": "AWS CDK resource provider framework - onEvent (CLWorkshopEC2AndEKS/wafStack/wafAssociationHelperProvider)",
+    "Environment": {
+     "Variables": {
+      "USER_ON_EVENT_FUNCTION_ARN": {
+       "Fn::GetAtt": [
+        "wafStackwafAssociationHelperFn2B5955BF",
+        "Arn"
+       ]
+      }
+     }
+    },
+    "Handler": "framework.onEvent",
+    "Runtime": "nodejs14.x",
+    "Timeout": 900
+   },
+   "DependsOn": [
+    "wafStackwafAssociationHelperFn2B5955BF",
+    "wafStackwafAssociationHelperProviderframeworkonEventServiceRoleDefaultPolicy7500F617",
+    "wafStackwafAssociationHelperProviderframeworkonEventServiceRole4FD62518"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/wafStack/wafAssociationHelperProvider/framework-onEvent/Resource",
+    "aws:asset:path": "asset.53c95d71cfd280747d971a38505aea07f812fdba75874a090358a2fc4f58f79b",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
+   }
+  },
+  "wafStackwafAssociationHelperlambdaTrigger62C71F54": {
+   "Type": "AWS::CloudFormation::CustomResource",
+   "Properties": {
+    "ServiceToken": {
+     "Fn::GetAtt": [
+      "wafStackwafAssociationHelperProviderframeworkonEvent4F3FD320",
+      "Arn"
+     ]
+    }
+   },
+   "DependsOn": [
+    "wafStackwafAssociationHelperProviderframeworkonEvent4F3FD320",
+    "wafStackwafAssociationHelperProviderframeworkonEventServiceRoleDefaultPolicy7500F617",
+    "wafStackwafAssociationHelperProviderframeworkonEventServiceRole4FD62518"
+   ],
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/wafStack/wafAssociationHelperlambdaTrigger/Default"
+   }
+  },
+  "amazonElasticsearchServiceLinkRoleFnServiceRoleDEC492D9": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/amazonElasticsearchServiceLinkRoleFn/ServiceRole/Resource"
+   }
+  },
+  "amazonElasticsearchServiceLinkRoleFnServiceRoleDefaultPolicy62F3D357": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": [
+        "iam:GetRole",
+        "iam:CreateServiceLinkedRole"
+       ],
+       "Effect": "Allow",
+       "Resource": "*"
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "amazonElasticsearchServiceLinkRoleFnServiceRoleDefaultPolicy62F3D357",
+    "Roles": [
+     {
+      "Ref": "amazonElasticsearchServiceLinkRoleFnServiceRoleDEC492D9"
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/amazonElasticsearchServiceLinkRoleFn/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "amazonElasticsearchServiceLinkRoleFnDDD0EE65": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": {
+      "Fn::Sub": "aws-gcr-solutions-${AWS::Region}"
+     },
+     "S3Key": "log-hub-workshop/v2.0.2/2fb9ea7ac07b6a39eb492a92aabe485a78fc35b174fb64815a9c1efc3f1901fd.zip"
+    },
+    "Role": {
+     "Fn::GetAtt": [
+      "amazonElasticsearchServiceLinkRoleFnServiceRoleDEC492D9",
+      "Arn"
+     ]
+    },
+    "Description": {
+     "Fn::Join": [
+      "",
+      [
+       {
+        "Ref": "AWS::StackName"
+       },
+       " - Service Linked Role Create Handler"
+      ]
+     ]
+    },
+    "Handler": "create_service_linked_role.lambda_handler",
+    "MemorySize": 128,
+    "Runtime": "python3.9",
+    "Timeout": 60
+   },
+   "DependsOn": [
+    "amazonElasticsearchServiceLinkRoleFnServiceRoleDefaultPolicy62F3D357",
+    "amazonElasticsearchServiceLinkRoleFnServiceRoleDEC492D9"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/amazonElasticsearchServiceLinkRoleFn/Resource",
+    "aws:asset:path": "asset.2fb9ea7ac07b6a39eb492a92aabe485a78fc35b174fb64815a9c1efc3f1901fd",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
+   }
+  },
+  "amazonElasticsearchServiceLinkRoleFnProviderframeworkonEventServiceRoleAF1AE896": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "DependsOn": [
+    "amazonElasticsearchServiceLinkRoleFnDDD0EE65",
+    "amazonElasticsearchServiceLinkRoleFnServiceRoleDefaultPolicy62F3D357",
+    "amazonElasticsearchServiceLinkRoleFnServiceRoleDEC492D9"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/amazonElasticsearchServiceLinkRoleFnProvider/framework-onEvent/ServiceRole/Resource"
+   }
+  },
+  "amazonElasticsearchServiceLinkRoleFnProviderframeworkonEventServiceRoleDefaultPolicyFEEC6D6E": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": "lambda:InvokeFunction",
+       "Effect": "Allow",
+       "Resource": [
+        {
+         "Fn::GetAtt": [
+          "amazonElasticsearchServiceLinkRoleFnDDD0EE65",
+          "Arn"
+         ]
+        },
+        {
+         "Fn::Join": [
+          "",
+          [
+           {
+            "Fn::GetAtt": [
+             "amazonElasticsearchServiceLinkRoleFnDDD0EE65",
+             "Arn"
+            ]
+           },
+           ":*"
+          ]
+         ]
+        }
+       ]
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "amazonElasticsearchServiceLinkRoleFnProviderframeworkonEventServiceRoleDefaultPolicyFEEC6D6E",
+    "Roles": [
+     {
+      "Ref": "amazonElasticsearchServiceLinkRoleFnProviderframeworkonEventServiceRoleAF1AE896"
+     }
+    ]
+   },
+   "DependsOn": [
+    "amazonElasticsearchServiceLinkRoleFnDDD0EE65",
+    "amazonElasticsearchServiceLinkRoleFnServiceRoleDefaultPolicy62F3D357",
+    "amazonElasticsearchServiceLinkRoleFnServiceRoleDEC492D9"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/amazonElasticsearchServiceLinkRoleFnProvider/framework-onEvent/ServiceRole/DefaultPolicy/Resource"
+   }
+  },
+  "amazonElasticsearchServiceLinkRoleFnProviderframeworkonEvent9D8A6E13": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": {
+      "Fn::Sub": "aws-gcr-solutions-${AWS::Region}"
+     },
+     "S3Key": "log-hub-workshop/v2.0.2/53c95d71cfd280747d971a38505aea07f812fdba75874a090358a2fc4f58f79b.zip"
+    },
+    "Role": {
+     "Fn::GetAtt": [
+      "amazonElasticsearchServiceLinkRoleFnProviderframeworkonEventServiceRoleAF1AE896",
+      "Arn"
+     ]
+    },
+    "Description": "AWS CDK resource provider framework - onEvent (CLWorkshopEC2AndEKS/amazonElasticsearchServiceLinkRoleFnProvider)",
+    "Environment": {
+     "Variables": {
+      "USER_ON_EVENT_FUNCTION_ARN": {
+       "Fn::GetAtt": [
+        "amazonElasticsearchServiceLinkRoleFnDDD0EE65",
+        "Arn"
+       ]
+      }
+     }
+    },
+    "Handler": "framework.onEvent",
+    "Runtime": "nodejs14.x",
+    "Timeout": 900
+   },
+   "DependsOn": [
+    "amazonElasticsearchServiceLinkRoleFnDDD0EE65",
+    "amazonElasticsearchServiceLinkRoleFnServiceRoleDefaultPolicy62F3D357",
+    "amazonElasticsearchServiceLinkRoleFnServiceRoleDEC492D9",
+    "amazonElasticsearchServiceLinkRoleFnProviderframeworkonEventServiceRoleDefaultPolicyFEEC6D6E",
+    "amazonElasticsearchServiceLinkRoleFnProviderframeworkonEventServiceRoleAF1AE896"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/amazonElasticsearchServiceLinkRoleFnProvider/framework-onEvent/Resource",
+    "aws:asset:path": "asset.53c95d71cfd280747d971a38505aea07f812fdba75874a090358a2fc4f58f79b",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
+   }
+  },
+  "amazonElasticsearchServiceLinkRoleFnTrigger": {
+   "Type": "AWS::CloudFormation::CustomResource",
+   "Properties": {
+    "ServiceToken": {
+     "Fn::GetAtt": [
+      "amazonElasticsearchServiceLinkRoleFnProviderframeworkonEvent9D8A6E13",
+      "Arn"
+     ]
+    }
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/amazonElasticsearchServiceLinkRoleFnTrigger/Default"
+   }
+  },
+  "workshopOpensearchSecurityGroup31923830": {
+   "Type": "AWS::EC2::SecurityGroup",
+   "Properties": {
+    "GroupDescription": "Security group for domain workshopOpensearch",
+    "SecurityGroupEgress": [
+     {
+      "CidrIp": "0.0.0.0/0",
+      "Description": "Allow all outbound traffic by default",
+      "IpProtocol": "-1"
+     }
+    ],
+    "SecurityGroupIngress": [
+     {
+      "CidrIp": "0.0.0.0/0",
+      "Description": "from 0.0.0.0/0:443",
+      "FromPort": 443,
+      "IpProtocol": "tcp",
+      "ToPort": 443
+     }
+    ],
+    "VpcId": {
+     "Ref": "workshopVpcB999C4C5"
+    }
+   },
+   "DependsOn": [
+    "amazonElasticsearchServiceLinkRoleFnTrigger"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/workshopOpensearch/SecurityGroup/Resource"
+   }
+  },
+  "workshopOpensearch85E0390C": {
+   "Type": "AWS::OpenSearchService::Domain",
+   "Properties": {
+    "AdvancedSecurityOptions": {
+     "Enabled": true,
+     "InternalUserDatabaseEnabled": true,
+     "MasterUserOptions": {
+      "MasterUserName": "admin",
+      "MasterUserPassword": "CentralizedLogging@@123"
+     }
+    },
+    "ClusterConfig": {
+     "DedicatedMasterEnabled": false,
+     "InstanceCount": 2,
+     "InstanceType": "r6g.large.search",
+     "ZoneAwarenessEnabled": false
+    },
+    "DomainEndpointOptions": {
+     "EnforceHTTPS": true,
+     "TLSSecurityPolicy": "Policy-Min-TLS-1-0-2019-07"
+    },
+    "DomainName": "workshop-os",
+    "EBSOptions": {
+     "EBSEnabled": true,
+     "VolumeSize": 10,
+     "VolumeType": "gp2"
+    },
+    "EncryptionAtRestOptions": {
+     "Enabled": true
+    },
+    "EngineVersion": "OpenSearch_2.3",
+    "LogPublishingOptions": {},
+    "NodeToNodeEncryptionOptions": {
+     "Enabled": true
+    },
+    "VPCOptions": {
+     "SecurityGroupIds": [
+      {
+       "Fn::GetAtt": [
+        "workshopOpensearchSecurityGroup31923830",
+        "GroupId"
+       ]
+      }
+     ],
+     "SubnetIds": [
+      {
+       "Ref": "workshopVpcprivateSubnet1Subnet230C4CDE"
+      }
+     ]
+    }
+   },
+   "DependsOn": [
+    "amazonElasticsearchServiceLinkRoleFnTrigger"
+   ],
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/workshopOpensearch/Resource"
+   }
+  },
+  "workshopOpensearchAccessPolicy4869260C": {
+   "Type": "Custom::OpenSearchAccessPolicy",
+   "Properties": {
+    "ServiceToken": {
+     "Fn::GetAtt": [
+      "AWS679f53fac002430cb0da5b7982bd22872D164C4C",
+      "Arn"
+     ]
+    },
+    "Create": {
+     "Fn::Join": [
+      "",
+      [
+       "{\"action\":\"updateDomainConfig\",\"service\":\"OpenSearch\",\"parameters\":{\"DomainName\":\"",
+       {
+        "Ref": "workshopOpensearch85E0390C"
+       },
+       "\",\"AccessPolicies\":\"{\\\"Statement\\\":[{\\\"Action\\\":\\\"es:*\\\",\\\"Effect\\\":\\\"Allow\\\",\\\"Principal\\\":{\\\"AWS\\\":\\\"*\\\"},\\\"Resource\\\":\\\"arn:aws-cn:es:",
+       {
+        "Ref": "AWS::Region"
+       },
+       ":",
+       {
+        "Ref": "AWS::AccountId"
+       },
+       ":domain/workshop-os/*\\\"}],\\\"Version\\\":\\\"2012-10-17\\\"}\"},\"outputPaths\":[\"DomainConfig.AccessPolicies\"],\"physicalResourceId\":{\"id\":\"",
+       {
+        "Ref": "workshopOpensearch85E0390C"
+       },
+       "AccessPolicy\"}}"
+      ]
+     ]
+    },
+    "Update": {
+     "Fn::Join": [
+      "",
+      [
+       "{\"action\":\"updateDomainConfig\",\"service\":\"OpenSearch\",\"parameters\":{\"DomainName\":\"",
+       {
+        "Ref": "workshopOpensearch85E0390C"
+       },
+       "\",\"AccessPolicies\":\"{\\\"Statement\\\":[{\\\"Action\\\":\\\"es:*\\\",\\\"Effect\\\":\\\"Allow\\\",\\\"Principal\\\":{\\\"AWS\\\":\\\"*\\\"},\\\"Resource\\\":\\\"arn:aws-cn:es:",
+       {
+        "Ref": "AWS::Region"
+       },
+       ":",
+       {
+        "Ref": "AWS::AccountId"
+       },
+       ":domain/workshop-os/*\\\"}],\\\"Version\\\":\\\"2012-10-17\\\"}\"},\"outputPaths\":[\"DomainConfig.AccessPolicies\"],\"physicalResourceId\":{\"id\":\"",
+       {
+        "Ref": "workshopOpensearch85E0390C"
+       },
+       "AccessPolicy\"}}"
+      ]
+     ]
+    },
+    "InstallLatestAwsSdk": false
+   },
+   "DependsOn": [
+    "amazonElasticsearchServiceLinkRoleFnTrigger",
+    "workshopOpensearchAccessPolicyCustomResourcePolicy96632E03"
+   ],
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/workshopOpensearch/AccessPolicy/Resource/Default"
+   }
+  },
+  "workshopOpensearchAccessPolicyCustomResourcePolicy96632E03": {
+   "Type": "AWS::IAM::Policy",
+   "Properties": {
+    "PolicyDocument": {
+     "Statement": [
+      {
+       "Action": "es:UpdateDomainConfig",
+       "Effect": "Allow",
+       "Resource": {
+        "Fn::GetAtt": [
+         "workshopOpensearch85E0390C",
+         "Arn"
+        ]
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "PolicyName": "workshopOpensearchAccessPolicyCustomResourcePolicy96632E03",
+    "Roles": [
+     {
+      "Ref": "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2"
+     }
+    ]
+   },
+   "DependsOn": [
+    "amazonElasticsearchServiceLinkRoleFnTrigger"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/workshopOpensearch/AccessPolicy/CustomResourcePolicy/Resource"
+   }
+  },
+  "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ],
+     "Version": "2012-10-17"
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Join": [
+       "",
+       [
+        "arn:",
+        {
+         "Ref": "AWS::Partition"
+        },
+        ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+       ]
+      ]
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/AWS679f53fac002430cb0da5b7982bd2287/ServiceRole/Resource"
+   }
+  },
+  "AWS679f53fac002430cb0da5b7982bd22872D164C4C": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": {
+      "Fn::Sub": "aws-gcr-solutions-${AWS::Region}"
+     },
+     "S3Key": "log-hub-workshop/v2.0.2/400f664767ec04a0966c8d688fa643ee8f6d0c94c8d91a71d3af814cc9b9e6ab.zip"
+    },
+    "Role": {
+     "Fn::GetAtt": [
+      "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2",
+      "Arn"
+     ]
+    },
+    "Handler": "index.handler",
+    "Runtime": "nodejs14.x",
+    "Timeout": 120
+   },
+   "DependsOn": [
+    "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/AWS679f53fac002430cb0da5b7982bd2287/Resource",
+    "aws:asset:path": "asset.400f664767ec04a0966c8d688fa643ee8f6d0c94c8d91a71d3af814cc9b9e6ab",
+    "aws:asset:is-bundled": false,
+    "aws:asset:property": "Code"
+   }
+  },
+  "CDKMetadata": {
+   "Type": "AWS::CDK::Metadata",
+   "Properties": {
+    "Analytics": "v2:deflate64:H4sIAAAAAAAA/31VW2/iOBT+LX036QxUK+3bUjqdZctMUanYR+Q4B3BxbOQLVRXlv+8XO7cyo32Jz92fP5/jTLPqj7vsyw1/dxNRnCZK5lm18VycGEy7ys2y6j6IE3m22OtWSsvaKCk+BnOrJ+WeO6qZm+2qgs7KfJSkfZZcD72BcefIu2zeLDVTvMwLnlWouOIfZLdknTSabaQ+KPJGPwYtfGPpBYT28qccONZkS+karWaSl1n1YhQ1jrgO6AdpqZ3nWtDamr1UwC+UCcXeGmCvnq08SD0XgpxbFkAvfUxaNDGPTcxvIx6k81bmoYM71mtGYppV27NoPNv1gq1DDjCbkOtE+CC9mODplefpCMk+2MCgEZJ3m0RHI3xbrpvlJ/ffuad3/sHWVl4gDoWX2pOF3AUkJK0292iFY7yrDYlgcaLv1oRzxPC/hqU+WPDwi/1bNNeMn+Uh7YGLIefnZxmRDyKINAEbj/ql4W/Q0KaHxEYUkGqCFdS0HvtB/miKxtlKnbfdJMrg/4JCDghC2xqhuXZbwPTAPc9RCugtmFpzy0sCVf1xH+6vbM/nhv/eP1a7Yl2HscT/qNYvhi4UUxQRuJJrHNPG+WhBpeWV2wP50VX1Adce0B68cYIrjFRWzaFsktJvvOKYp+PC6L08BNt31HUoqFPceYkJ4UXOFZDCdUE3z89ntHBMXMF3H31kY+2xPo7DTJBuYzp55E/H6CGOVMA44a4WKiALOe8OQI/sKeSxp8n94Fru0VO4HNLLAufSJDwG/CILJPw0BR26uoMy5D/nb4jfchWIzVWOfG+NUkjdkL1IQV2X/k2qXBy5BcfvfA8iUPBfyueLFVPmAIwrMyK5kyFsvCVettak1OwkNTnp9tLS0TjKYuMreSH70cYbnMcRt+LoEhB0rCm5TI9MlOqaLcCLKX/X+1eunpH4FjcDhetsX+Sdal7WHf4HQskMHC+UjI/tp6F6Dv4cYu/1Y9HOJv4lEP5x6CQRN93ZNg+0DBuj7idIdXxdjS5keiu/ZH/Obv5qf1S3CdokQpuccF/Cq8llepc9JXk7vUsYZ1P83mKaMyo+uyiAj7dBeHfbOK7YnuCn95RMj63p1WxmNdNokOzN3V6+3mXTr9ns5s1JObG4fllS9pLW/wA4r7ZtUgcAAA=="
+   },
+   "Metadata": {
+    "aws:cdk:path": "CLWorkshopEC2AndEKS/CDKMetadata/Default"
+   },
+   "Condition": "CDKMetadataAvailable"
+  }
+ },
+ "Outputs": {
+  "logFakerStackwidgetsapiEndpoint12F105A7": {
+   "Value": {
+    "Fn::Join": [
+     "",
+     [
+      "https://",
+      {
+       "Ref": "logFakerStackwidgetsapi2936839D"
+      },
+      ".execute-api.",
+      {
+       "Ref": "AWS::Region"
+      },
+      ".",
+      {
+       "Ref": "AWS::URLSuffix"
+      },
+      "/",
+      {
+       "Ref": "logFakerStackwidgetsapiDeploymentStagedev0BAB325E"
+      },
+      "/"
+     ]
+    ]
+   }
+  },
+  "AlbEC2HostedWebsiteAddress": {
+   "Description": "ALB CName for EC2 hosted demo website",
+   "Value": {
+    "Fn::GetAtt": [
+     "ec2ClusterStackworkshopEC2Alb5012A70F",
+     "DNSName"
+    ]
+   }
+  },
+  "eksClusterStackEKSClusterConfigCommand7C7FE52F": {
+   "Value": {
+    "Fn::Join": [
+     "",
+     [
+      "aws eks update-kubeconfig --name ",
+      {
+       "Ref": "eksClusterStackEKSClusterED4C7603"
+      },
+      " --region ",
+      {
+       "Ref": "AWS::Region"
+      },
+      " --role-arn ",
+      {
+       "Fn::GetAtt": [
+        "eksClusterStackEKSWorkshopAdminRole42DB1E3C",
+        "Arn"
+       ]
+      }
+     ]
+    ]
+   }
+  },
+  "eksClusterStackEKSClusterGetTokenCommand4B538409": {
+   "Value": {
+    "Fn::Join": [
+     "",
+     [
+      "aws eks get-token --cluster-name ",
+      {
+       "Ref": "eksClusterStackEKSClusterED4C7603"
+      },
+      " --region ",
+      {
+       "Ref": "AWS::Region"
+      },
+      " --role-arn ",
+      {
+       "Fn::GetAtt": [
+        "eksClusterStackEKSWorkshopAdminRole42DB1E3C",
+        "Arn"
+       ]
+      }
+     ]
+    ]
+   }
+  },
+  "AlbEKSHostedWebsiteAddress": {
+   "Description": "ALB CName for EKS hosted demo website",
+   "Value": {
+    "Fn::GetAtt": [
+     "eksClusterStackEKSLoadBalancerAttributeC3F3A0BB",
+     "Value"
+    ]
+   }
+  }
+ },
+ "Parameters": {
+  "SsmParameterValueawsserviceamiamazonlinuxlatestamzn2amihvmarm64gp2C96584B6F00A464EAD1953AFF4B05118Parameter": {
+   "Type": "AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>",
+   "Default": "/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-arm64-gp2"
+  }
+ },
+ "Conditions": {
+  "CDKMetadataAvailable": {
+   "Fn::Or": [
+    {
+     "Fn::Or": [
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "af-south-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-east-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-northeast-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-northeast-2"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-south-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-southeast-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ap-southeast-2"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "ca-central-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "cn-north-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "cn-northwest-1"
+       ]
+      }
+     ]
+    },
+    {
+     "Fn::Or": [
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-central-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-north-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-south-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-west-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-west-2"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "eu-west-3"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "me-south-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "sa-east-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "us-east-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "us-east-2"
+       ]
+      }
+     ]
+    },
+    {
+     "Fn::Or": [
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "us-west-1"
+       ]
+      },
+      {
+       "Fn::Equals": [
+        {
+         "Ref": "AWS::Region"
+        },
+        "us-west-2"
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ }
+}
