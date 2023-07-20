@@ -20,6 +20,9 @@ You can visit the e-commerce website through the alb link in CloudFormation Outp
 1. 在本地 Vscode 中关联 EKS
 2. 下载 [clo-eks-uat.yaml](./clo-eks-uat.yaml)
 3. 执行`kubectl apply -f clo-eks-uat.yaml`, 你可以看到如下的pods
+![eks-flog-pods](./eks-flog-pods.png)
+
+其中json 日志还有 apache 日志来自于flog，其余的复用workshop的电商网站里面的pod.
 
 ### Nginx Log
 - Log format:
