@@ -18,7 +18,7 @@ You can visit the e-commerce website through the alb link in CloudFormation Outp
 ## How to crete application log in workshop EKS cluster
 
 1. 在本地 Vscode 中关联 EKS
-2. 下载 `clo-eks-uat.yaml`
+2. 下载 [clo-eks-uat.yaml](./clo-eks-uat.yaml)
 3. 执行`kubectl apply -f clo-eks-uat.yaml`, 你可以看到如下的pods
 
 ### Nginx Log
@@ -33,7 +33,7 @@ You can visit the e-commerce website through the alb link in CloudFormation Outp
   ```
   127.0.0.1 - - [24/Dec/2021:01:27:11 +0000] "GET / HTTP/1.1" 200 3520 "-" "curl/7.79.1" "-"
   ```
-  
+
 - Log path: 
   ```
   /var/log/containers/nginx-svc*
