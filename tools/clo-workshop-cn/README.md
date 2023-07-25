@@ -120,8 +120,12 @@ You can visit the e-commerce website through the alb link in CloudFormation Outp
 
 ## How to crete application log in workshop EKS cluster - Sidecar
 
-需要拼接一下不同Log Generator Container 和CLO生成的sidecar sh，并且mount一下path
-案例如下
+> **Note**
+> 注意，如果使用的是Workshop 创建的EKS，需要把 CLO 生成的FLB的config 的cpu 改成`100m`
+
+需要拼接一下不同Log Generator Container 和CLO生成的sidecar sh，
+
+Example:
 
 ```yaml
 ---
@@ -137,148 +141,16 @@ metadata:
   name: fluent-bit
   namespace: logging
   annotations:
-    eks.amazonaws.com/role-arn: arn:aws-cn:iam::123456789012:role/LogHub-EKS-LogAgent-Role-6b72c1ba1413488aa9d533edd7fb6245
+    eks.amazonaws.com/role-arn: arn:aws:iam::428529255974:role/CL-EKS-LogAgent-Role-e009f502
 
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: fluent-bit-read
-rules:
-  - nonResourceURLs:
-      - /metrics
-    verbs:
-      - get
-  - apiGroups: [""]
-    resources:
-      - namespaces
-      - pods
-      - pods/logs
-      - nodes
-      - nodes/proxy
-    verbs: ["get", "list", "watch"]
-
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: fluent-bit-read
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: fluent-bit-read
-subjects:
-- kind: ServiceAccount
-  name: fluent-bit
-  namespace: logging
-
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: fluent-bit-config
-  namespace: logging
-  labels:
-    k8s-app: fluent-bit
-data:
-  # Configuration files: server, input, filters and output
-  # ======================================================
-  uniform-time-format.lua: |
-    function cb_print(tag, timestamp, record)
-        record['time'] = string.format(
-            '%s.%sZ',
-            os.date('%Y-%m-%dT%H:%M:%S', timestamp['sec']),
-            string.sub(string.format('%06d', timestamp['nsec']), 1, 6)
-        )
-        return 2, timestamp, record
-    end
-    
-  fluent-bit.conf: |
-    [SERVICE]
-        Flush                       5
-        Daemon                      off
-        Log_level                   Info
-        Http_server                 On
-        Http_listen                 0.0.0.0
-        Http_port                   2022
-        Parsers_File                parsers.conf
-        storage.path                /var/fluent-bit/state/flb-storage/
-        storage.sync                normal
-        storage.checksum            off
-        storage.backlog.mem_limit   5M
-    
-    [INPUT]
-        Name                tail
-        Tag                 loghub.e4051755-482c-47c0-9108-028e496ceca0.a0999536-a5a5-416d-ba4f-025583a9a5c9.*
-        Path                /var/log/spring-boot/access.log
-        Path_Key            file_name
-        DB                  /var/fluent-bit/state/flb_container-e4051755-482c-47c0-9108-028e496ceca0.a0999536-a5a5-416d-ba4f-025583a9a5c9.db
-        DB.locking          True    
-        Multiline           On
-        Parser_Firstline    java_spring_boot_e4051755-482c-47c0-9108-028e496ceca0
-        Mem_Buf_Limit       50MB
-        # Since "Skip_Long_Lines" is set to "On", be sure to adjust the "Buffer_Chunk_Size","Buffer_Max_Size" according to the actual log. If the parameters are adjusted too much, the number of duplicate records will increase. If the value is too small, data will be lost. 
-        # https://docs.fluentbit.io/manual/pipeline/inputs/tail
-        Buffer_Chunk_Size   32k
-        Buffer_Max_Size     128K
-        Skip_Long_Lines     On
-        Skip_Empty_Lines    On
-        storage.type        filesystem
-        Read_from_Head      True
-
-    [OUTPUT]
-        Name                kinesis_streams
-        Match               loghub.e4051755-482c-47c0-9108-028e496ceca0.a0999536-a5a5-416d-ba4f-025583a9a5c9.*
-        Region              cn-northwest-1
-        Stream              LogHub-EKS-Cluster-PodLog-Pipeline-a0999-Stream790BDEE4-bR4VzxJqfdKS
-        Retry_Limit         False
-        Role_arn            arn:aws-cn:iam::379076500825:role/LogHub-EKS-Cluster-PodLog-DataBufferKDSRole7BCBC83-FUSGA9R45JSH
-
-
-    [FILTER]
-        Name                modify
-        Match               loghub.*
-        Set                 cluster ${CLUSTER_NAME}
-
-    [FILTER]
-        Name                lua
-        Match               loghub.*
-        time_as_table       on
-        script              uniform-time-format.lua
-        call                cb_print
-    
-
-  parsers.conf: |
-    [PARSER]
-        Name   json
-        Format json
-        Time_Key time
-        Time_Format %Y-%m-%dT%H:%M:%S.%LZ
+  ........
+  ........
+  ........
 
     [PARSER]
-        Name         docker
-        Format       json
-        Time_Key     container_log_time
-        Time_Format  %Y-%m-%dT%H:%M:%S.%LZ
-        Time_Keep    On
-
-    [PARSER]
-        Name        cri_regex
-        Format      regex
-        Regex       ^(?<container_log_time>[^ ]+) (?<stream>stdout|stderr) (?<logtag>[^ ]*) (?<message>.*)$      
-        Time_Key    container_log_time
-        Time_Format %Y-%m-%dT%H:%M:%S.%LZ
-        Time_Keep    On        
-
-
-    [PARSER]
-        Name        java_spring_boot_e4051755-482c-47c0-9108-028e496ceca0
-        Format      regex
-        Regex       (?<time>\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2})\s+(?<level>[\S]+)\s+\[(?<thread>.+)\]\s+(?<logger>\S+)\s+:\s+(?<message>[\s\S]+)
-        Time_Key    time
-        Time_Format %Y-%m-%d %H:%M:%S
-
-
+        Name fluentbit_prom_metrics_to_json
+        Format regex
+        Regex ^(?<metric>[^ {}]*){name=\"(?<plugin>[^ {}\"]*)\"} (?<value>[^ ]*) (?<time>[^ ]*)
 
 ---
 apiVersion: v1
@@ -288,85 +160,296 @@ metadata:
   name: app-sidecar
   labels:
     app: app-sidecar
-spec: 
+spec:
   containers:
-  - name: spring-boot
-    image: openjdk:11-jre
-    volumeMounts:
-      - name: app-log
-        mountPath: /var/log/spring-boot  
-    resources:
-      limits:
-        memory: 512Mi
-    args:
-      - /bin/bash
-      - -xec
-      - |
-        cd /tmp
-        wget https://aws-gcr-solutions.s3.amazonaws.com/log-hub-workshop/v1.0.0/petstore-0.0.1-SNAPSHOT.jar
-        mkdir -p /var/log/spring-boot/
-        java -jar petstore-0.0.1-SNAPSHOT.jar --server.port=80 | tee /var/log/spring-boot/access.log
-    ports:
-      - containerPort: 80
-        protocol: TCP
-  - name: ping-spring-boot
-    image: badouralix/curl-jq
-    resources:
-      limits:
-        memory: 512Mi
-    args:
-      - /bin/sh
-      - -ec
-      - |
-        curl -LSs "https://hub.fastgit.xyz/wchaws/flog/releases/download/v0.5.0-20220529/flog_0.5.0-20220529_linux_arm64.tar.gz" -o /tmp/flog.tar.gz
-        cd /tmp
-        tar -xvzf flog.tar.gz
-        mv flog /usr/bin
-        while true; do
-          flog -f json -n 10 | jq -r '"http://localhost" + .request' | xargs -I {} sh -c "curl {} -o /dev/null; sleep 1;" &> /dev/null
-          curl http://localhost/hello &> /dev/null
-        done
-  # Fluent-bit's container
-  - name: fluent-bit
-    image: public.ecr.aws/aws-observability/aws-for-fluent-bit:stable
-    imagePullPolicy: Always
-    env:
-      - name: CLUSTER_NAME
-        value: "loghub-eks-1659346435"
-    ports:
-      - containerPort: 2022
-    resources:
+    - name: flog-json-amd64
+      image: nginx:1.20
+      imagePullPolicy: Always
+      ports:
+        - containerPort: 80
+          protocol: TCP
+      resources:
         limits:
-          memory: 200Mi
-        requests:
           memory: 100Mi
-    volumeMounts:
-    - name: var-log
-      mountPath: /var/log
-    - name: var-lib-docker-containers
-      mountPath: /var/lib/docker/containers
-      readOnly: true
-    - name: app-log
-      mountPath: /var/log/spring-boot  
-    - name: fluentbitstate
-      mountPath: /var/fluent-bit/state  
-    - name: fluent-bit-config
-      mountPath: /fluent-bit/etc/ 
-      readOnly: true    
-  volumes:
-  - name: var-log
-    hostPath:
-      path: /var/log
-  - name: var-lib-docker-containers
-    hostPath:
-      path: /var/lib/docker/containers      
-  - name: app-log
-    emptyDir: {}
-  - name: fluentbitstate
-    hostPath:
-      path: /var/fluent-bit/state      
-  - name: fluent-bit-config
-    configMap:
-      name: fluent-bit-config   
-  serviceAccountName: fluent-bit   
+        requests:
+          cpu: 25m
+          memory: 100Mi
+      args:
+        - /bin/bash
+        - -xec
+        - |
+          curl -LS "https://kervin-solutions.s3.cn-north-1.amazonaws.com.cn/flog_0.6.0-20220826_linux_amd64.tar.gz" -o /tmp/flog.tar.gz
+          cd /tmp
+          tar -xvzf flog.tar.gz
+          mv flog /usr/bin
+          /usr/bin/flog -d 1s -l -f json | sed -e 's/datetime/time/g' | tee /var/log/flog/flog.log
+      volumeMounts:
+        - name: app-log
+          mountPath: /var/log/flog
+    # Fluent-bit's container
+    - name: fluent-bit
+      image: public.ecr.aws/aws-observability/aws-for-fluent-bit:2.31.12
+      imagePullPolicy: Always
+      env:
+        - name: CLUSTER_NAME
+          value: "Workshop-Cluster"
+      ports:
+
+      .......
+      .......
+      .......
+
+  serviceAccountName: fluent-bit
+  
 ```
+
+* [Nginx Log](#nginx-log-sidecar)
+* [Apache Log](#apache-log-sidecar)
+* [Json Log](#json-log-sidecar)
+* [Single-line Log](#single-line-log-sidecar)
+* [Spring-boot Log](#spring-boot-log-sidecar)
+
+### Nginx Log Sidecar
+注意，该模式下生成的 Log 和 Workshop生成的log不一样，所以需要单独创建一个Sidecar的config
+- Log format:
+  ```
+  log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+  '$status $body_bytes_sent';
+  ```
+
+- Sample log:
+  ```
+  240.20.85.168 - - [22/Jul/2023:07:09:16 +0000] "POST /metrics/strategize/deliverables/reinvent HTTP/2.0" 200 18498
+  ```
+
+- Log path: 
+  ```
+  /var/log/nginx/access.log
+  ```
+- Container yaml:
+  注意切换对应的操作系统, 如果你的EKS 由Workshop启动，则选择amd64
+
+  把下面的代码，copy到`containers:`下面
+  ```yaml
+    - name: nginx
+      image: nginx:1.20
+      ports:
+        - containerPort: 80
+          protocol: TCP
+      resources:
+        limits:
+          memory: 100Mi
+        requests:
+          cpu: 25m
+          memory: 100Mi
+      args:
+        - /bin/bash
+        - -xec
+        - |
+          curl -LS "https://kervin-solutions.s3.cn-north-1.amazonaws.com.cn/flog_0.6.0-20220826_linux_amd64.tar.gz" -o /tmp/flog.tar.gz
+          cd /tmp
+          tar -xvzf flog.tar.gz
+          mv flog /usr/bin
+          /usr/bin/flog -d 2s -l | tee /var/log/nginx/access.log
+      volumeMounts:
+        - name: app-log
+          mountPath: /var/log/nginx
+  ```
+
+### Apache Log Sidecar
+- Log format:
+  ```
+  LogFormat "%h %l %u %t \"%r\" %>s %b" combined
+  ```
+
+- Sample log:
+  ```
+  55.146.151.251 - - [24/Jul/2022:07:59:59 +0000] "POST /e-enable HTTP/1.1" 405 13357
+  ```
+
+- Log path: 
+  ```
+  /var/log/apache/log.log
+  ```
+- Container yaml:
+  注意切换对应的操作系统, 如果你的EKS 由Workshop启动，则选择amd64
+
+  把下面的代码，copy到`containers:`下面
+  ```yaml
+    - name: flog-apache
+      image: nginx:1.20
+      resources:
+        limits:
+          cpu: 25m
+          memory: 128Mi
+      env:
+        - name: FLOG_VERSION
+          value: 0.6.0-20220826
+        - name: GITHUB_HOST
+          value: github.com
+      args:
+        - /bin/bash
+        - -xec
+        - |
+          curl -fsSL https://kervin-solutions.s3.cn-north-1.amazonaws.com.cn/get-flog.sh | bash
+          mkdir -p /var/log/apache/
+          /usr/bin/flog -d 2s -f apache_common -l | tee /var/log/apache/log.log
+      volumeMounts:
+        - name: app-log
+          mountPath: /var/log/apache
+  ```
+
+### Json Log Sidecar
+
+- Sample log:
+  ```
+    {"host":"176.54.164.169", "user-identifier":"kling1353", "time":"24/Jul/2022:07:56:40 +0000", "method": "PUT", "request": "/unleash/magnetic/matrix", "protocol":"HTTP/1.1", "status":403, "bytes":29229, "referer": "http://www.chiefleading-edge.info/frictionless"}
+  ```
+- Log time format:
+  ```
+  %d/%b/%Y:%H:%M:%S %z
+  ```
+- Log path: 
+  ```
+  /var/log/flog/flog.log
+  ```
+
+- Container yaml:
+  注意切换对应的操作系统, 如果你的EKS 由Workshop启动，则选择amd64
+
+  把下面的代码，copy到`containers:`下面
+  ```yaml
+    - name: flog-json-amd64
+      image: nginx:1.20
+      imagePullPolicy: Always
+      ports:
+        - containerPort: 80
+          protocol: TCP
+      resources:
+        limits:
+          memory: 100Mi
+        requests:
+          cpu: 25m
+          memory: 100Mi
+      args:
+        - /bin/bash
+        - -xec
+        - |
+          curl -LS "https://kervin-solutions.s3.cn-north-1.amazonaws.com.cn/flog_0.6.0-20220826_linux_amd64.tar.gz" -o /tmp/flog.tar.gz
+          cd /tmp
+          tar -xvzf flog.tar.gz
+          mv flog /usr/bin
+          /usr/bin/flog -d 1s -l -f json | sed -e 's/datetime/time/g' | tee /var/log/flog/flog.log
+      volumeMounts:
+        - name: app-log
+          mountPath: /var/log/flog
+  ```
+
+### Single-line Log Sidecar
+我们复用Apache 的log 作为单行日志
+
+- Regex:
+  ```
+  (?<remote_addr>[0-9.-]+)\s+(?<remote_ident>[\w.-]+)\s+(?<remote_user>[\w.-]+)\s+\[(?<time_local>[^\[\]]+|-)\]\s+\"(?<request_method>(?:[^"]|\")+)\s(?<request_uri>(?:[^"]|\")+)\s(?<request_protocol>(?:[^"]|\")+)\"\s+(?<status>\d{3}|-)\s+(?<response_size_bytes>\d+|-).*
+  ```
+
+- Sample log:
+  ```
+  55.146.151.251 - - [24/Jul/2022:07:59:59 +0000] "POST /e-enable HTTP/1.1" 405 13357
+  ```
+- Log time format:
+  ```
+  %d/%b/%Y:%H:%M:%S %z
+  ```
+- Log path: 
+  ```
+  /var/log/apache/log.log
+  ```
+- Container yaml:
+  注意切换对应的操作系统, 如果你的EKS 由Workshop启动，则选择amd64
+
+  把下面的代码，copy到`containers:`下面
+  ```yaml
+    - name: flog-apache
+      image: nginx:1.20
+      resources:
+        limits:
+          cpu: 25m
+          memory: 128Mi
+      env:
+        - name: FLOG_VERSION
+          value: 0.6.0-20220826
+        - name: GITHUB_HOST
+          value: github.com
+      args:
+        - /bin/bash
+        - -xec
+        - |
+          curl -fsSL https://kervin-solutions.s3.cn-north-1.amazonaws.com.cn/get-flog.sh | bash
+          mkdir -p /var/log/apache/
+          /usr/bin/flog -d 2s -f apache_common -l | tee /var/log/apache/log.log
+      volumeMounts:
+        - name: app-log
+          mountPath: /var/log/apache
+  ```
+
+### Spring-boot Log Sidecar
+- Log format:
+  ```
+  %d{yyyy-MM-dd HH:mm:ss} %-5level [%thread] %logger : %msg%n
+  ```
+
+- Sample log:
+  ```
+  2022-02-18 10:32:26 ERROR [http-nio-8080-exec-1] org.apache.catalina.core.ContainerBase.[Tomcat].[localhost].[/].[dispatcherServlet] : Servlet.service() for servlet [dispatcherServlet] in context with path [] threw exception [Request processing failed; nested exception is java.lang.ArithmeticException: / by zero] with root cause
+  java.lang.ArithmeticException: / by zero
+    at com.springexamples.demo.web.LoggerController.logs(LoggerController.java:22)
+    at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+    at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke
+  ```
+
+- Log path: 
+  ```
+  /var/log/spring-boot/access.log
+  ```
+- Container yaml:
+  注意切换对应的操作系统, 如果你的EKS 由Workshop启动，则选择amd64
+
+  把下面的代码，copy到`containers:`下面
+  ```yaml
+    - name: spring-boot
+      image: openjdk:11-jre
+      resources:
+        limits:
+          cpu: 25m
+          memory: 512Mi
+      args:
+        - /bin/bash
+        - -xec
+        - |
+          cd /tmp
+          wget https://aws-gcr-solutions.s3.amazonaws.com/log-hub-workshop/v1.0.0/petstore-0.0.1-SNAPSHOT.jar
+          mkdir -p /var/log/spring-boot/
+          java -jar petstore-0.0.1-SNAPSHOT.jar --server.port=80 | tee /var/log/spring-boot/access.log
+      ports:
+        - containerPort: 80
+          protocol: TCP
+      volumeMounts:
+        - name: app-log
+          mountPath: /var/log/spring-boot
+    - name: ping-spring-boot
+      image: badouralix/curl-jq
+      resources:
+        limits:
+          cpu: 25m
+          memory: 512Mi
+      args:
+        - /bin/sh
+        - -ec
+        - |
+          curl -fsSL https://kervin-solutions.s3.cn-north-1.amazonaws.com.cn/get-flog.sh | sh
+          while true; do
+            flog -f json -n 10 | jq -r '"http://localhost" + .request' | xargs -I {} sh -c "curl {} -o /dev/null; sleep 1;" &> /dev/null
+            curl http://localhost/hello &> /dev/null
+          done
+  ```
