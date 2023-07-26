@@ -444,19 +444,6 @@ spec:
       volumeMounts:
         - name: app-log
           mountPath: /var/log/spring-boot
-    - name: ping-spring-boot
-      image: badouralix/curl-jq
-      resources:
-        limits:
-          cpu: 25m
-          memory: 512Mi
-      args:
-        - /bin/sh
-        - -ec
-        - |
-          curl -fsSL https://kervin-solutions.s3.cn-north-1.amazonaws.com.cn/get-flog.sh | sh
-          while true; do
-            flog -f json -n 10 | jq -r '"http://localhost" + .request' | xargs -I {} sh -c "curl {} -o /dev/null; sleep 1;" &> /dev/null
-            curl http://localhost/hello &> /dev/null
-          done
   ```
+
+  然后你需要手动进入spring-boot 这个pod，执行一下 `curl http://localhost/hello`
