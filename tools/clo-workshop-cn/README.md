@@ -446,4 +446,6 @@ spec:
           mountPath: /var/log/spring-boot
   ```
 
-  然后你需要手动进入spring-boot 这个pod，执行一下 `curl http://localhost/hello`
+  然后你需要手动进入spring-boot 这个pod `kubectl exec -it pod/$pod_name -n logging -c spring-boot bash`,
+  
+  执行一下 `curl http://localhost/hello`
