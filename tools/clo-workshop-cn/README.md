@@ -30,6 +30,12 @@ You can visit the e-commerce website through the alb link in CloudFormation Outp
   aws eks update-kubeconfig --name Workshop-Cluster --region us-west-2 --role-arn arn:aws:iam::0123456789012:role/clo-workshop-eksClusterStackEKSWorkshopAdminRole42-18ZZV7E1RXX0
   ```
   ![eks-link](./eks-link.png)
+  
+  你可以配置下面的指令，配置`kubectl`的简写为`k`
+  ```shell
+  alias k=kubectl
+  complete -o default -F __start_kubectl k
+  ```
 2. 下载 [clo-eks-uat.yaml](./clo-eks-uat.yaml)
 3. 执行`kubectl apply -f clo-eks-uat.yaml`, 你可以看到如下的pods
 ![eks-flog-pods](./eks-flog-pods.png)
