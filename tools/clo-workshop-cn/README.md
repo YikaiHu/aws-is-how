@@ -24,7 +24,12 @@ You can visit the e-commerce website through the alb link in CloudFormation Outp
 
 ## How to crete application log in workshop EKS cluster - DaemonSet
 
-1. 在本地 Vscode 中关联 EKS
+1. 在本地 Vscode 中关联 EKS, 你可以在 Workshop CloudFormation Stack 的 Output, 例子如下
+
+  ```shell
+  aws eks update-kubeconfig --name Workshop-Cluster --region us-west-2 --role-arn arn:aws:iam::0123456789012:role/clo-workshop-eksClusterStackEKSWorkshopAdminRole42-18ZZV7E1RXX0
+  ```
+  ![eks-link](./eks-link.png)
 2. 下载 [clo-eks-uat.yaml](./clo-eks-uat.yaml)
 3. 执行`kubectl apply -f clo-eks-uat.yaml`, 你可以看到如下的pods
 ![eks-flog-pods](./eks-flog-pods.png)
