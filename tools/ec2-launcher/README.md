@@ -11,6 +11,7 @@ IMAGE_ID="resolve:ssm:/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-
 INSTANCE_TYPE="t2.medium"
 KEYPAIR="YOUR_KEY_NAME"
 TAG_NAME="run-ec2-amazon-linux2"
+IAM_ROLE_NAME="YOUR_EC2_ROLE_NAME" 
 
 for ((i=1; i<=$INSTANCE_COUNT; i++))
 do
@@ -20,6 +21,7 @@ do
     --image-id $IMAGE_ID \
     --instance-type $INSTANCE_TYPE \
     --tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=${INSTANCE_NAME}}]" \
+    --iam-instance-profile Name=$IAM_ROLE_NAME \
     --user-data "#!/bin/bash -ex
       exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
       sudo yum update -y
