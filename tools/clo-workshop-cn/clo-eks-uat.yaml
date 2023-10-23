@@ -12,16 +12,11 @@ spec:
         limits:
           cpu: 25m
           memory: 128Mi
-      env:
-        - name: FLOG_VERSION
-          value: 0.6.0-20220826
-        - name: GITHUB_HOST
-          value: github.com
       args:
         - /bin/bash
         - -xec
         - |
-          curl -fsSL https://kervin-solutions.s3.cn-north-1.amazonaws.com.cn/get-flog.sh | bash
+          curl -fsSL https://ghproxy.com/https://github.com/wchaws/flog/blob/master/get-flog.sh | bash
           mkdir -p /var/log/json
           /usr/bin/flog -d 1s -l -f json | tee /var/log/json/access.log
 
@@ -39,15 +34,10 @@ spec:
         limits:
           cpu: 25m
           memory: 128Mi
-      env:
-        - name: FLOG_VERSION
-          value: 0.6.0-20220826
-        - name: GITHUB_HOST
-          value: github.com
       args:
         - /bin/bash
         - -xec
         - |
-          curl -fsSL https://kervin-solutions.s3.cn-north-1.amazonaws.com.cn/get-flog.sh | bash
+          curl -fsSL https://ghproxy.com/https://github.com/wchaws/flog/blob/master/get-flog.sh | bash
           mkdir -p /var/log/apache/
           /usr/bin/flog -d 2s -f apache_common -l | tee /var/log/apache/access.log
