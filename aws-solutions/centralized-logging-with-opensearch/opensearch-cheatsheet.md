@@ -113,13 +113,13 @@ PUT awswaf-waf-2023-01-06/_doc/1
 {
   "timestamp": 1672985361778,
     "formatVersion": 1,
-    "webaclId": "arn:aws:wafv2:ap-northeast-1:715958147773:regional/webacl/plat-sg03-security-testing-waf-webacl001-alb-tokyo/ee836909-cd2e-4823-a0da-7f4b42f8853d",
+    "webaclId": "arn:aws:wafv2:ap-northeast-1:012345678901:regional/webacl/plat-sg03-security-testing-waf-webacl001-alb-tokyo/ee836909-cd2e-4823-a0da-7f4b42f8853d",
     "terminatingRuleId": "Default_Action",
     "terminatingRuleType": "REGULAR",
     "action": "ALLOW",
     "terminatingRuleMatchDetails": [],
     "httpSourceName": "ALB",
-    "httpSourceId": "715958147773-app/plat-testing-pub-gateway-alb/d9c4eefd4de07408",
+    "httpSourceId": "012345678901-app/plat-testing-pub-gateway-alb/d9c4eefd4de07408",
     "ruleGroupList": [
       {
         "ruleGroupId": "AWS#AWSManagedRulesAmazonIpReputationList",
@@ -166,7 +166,7 @@ PUT awswaf-waf-2023-01-06/_doc/1
     ],
     "rateBasedRuleList": [
       {
-        "rateBasedRuleId": "arn:aws:wafv2:ap-northeast-1:715958147773_MANAGED:regional/ipset/ee836909-cd2e-4823-a0da-7f4b42f8853d_a46ef68c-075e-444d-a5c6-ca76cc2af04d_IPV4/a46ef68c-075e-444d-a5c6-ca76cc2af04d",
+        "rateBasedRuleId": "arn:aws:wafv2:ap-northeast-1:012345678901_MANAGED:regional/ipset/ee836909-cd2e-4823-a0da-7f4b42f8853d_a46ef68c-075e-444d-a5c6-ca76cc2af04d_IPV4/a46ef68c-075e-444d-a5c6-ca76cc2af04d",
         "rateBasedRuleName": "Rate-based-rule",
         "limitKey": "IP",
         "maxRateAllowed": 100,
